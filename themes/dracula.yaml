@@ -1,0 +1,65 @@
+dracula:
+  # Dracula — Dark theme inspired by draculatheme.com
+  # Deep purples with vivid accent colors
+
+  # Backgrounds
+  primary-background-color: "#282A36"        # Background
+  secondary-background-color: "#44475A"      # Current Line
+  card-background-color: "#282A36"
+  ha-card-background: "rgba(40, 42, 54, 0.95)"
+  paper-dialog-background-color: "#282A36"
+
+  # Text
+  primary-text-color: "#F8F8F2"              # Foreground
+  secondary-text-color: "#6272A4"            # Comment
+  text-primary-color: "#F8F8F2"
+  disabled-text-color: "#6272A4"
+
+  # Accents
+  primary-color: "#BD93F9"                   # Purple
+  accent-color: "#FF79C6"                    # Pink
+  light-primary-color: "#BD93F9"
+  dark-primary-color: "#6272A4"
+
+  # States
+  state-active-color: "#50FA7B"              # Green
+  state-icon-active-color: "#50FA7B"
+  switch-checked-color: "#50FA7B"
+  label-badge-text-color: "#F8F8F2"
+  label-badge-background-color: "#44475A"
+
+  # Sidebar
+  sidebar-background-color: "#21222C"
+  sidebar-text-color: "#F8F8F2"
+  sidebar-icon-color: "#BD93F9"
+  sidebar-selected-background-color: "#44475A"
+  sidebar-selected-icon-color: "#FF79C6"
+  sidebar-selected-text-color: "#F8F8F2"
+
+  # Header
+  app-header-background-color: "#21222C"
+  app-header-text-color: "#F8F8F2"
+
+  # Cards
+  ha-card-border-radius: "12px"
+  ha-card-box-shadow: "0 2px 12px rgba(0, 0, 0, 0.4)"
+  ha-card-border-color: "#44475A"
+  ha-card-border-width: "1px"
+
+  # Calendar colors (Dracula palette)
+  calendar-color-1: "#BD93F9"   # Purple
+  calendar-color-2: "#50FA7B"   # Green
+  calendar-color-3: "#FF79C6"   # Pink
+  calendar-color-4: "#FFB86C"   # Orange
+  calendar-color-5: "#8BE9FD"   # Cyan
+  calendar-color-6: "#FF5555"   # Red
+
+  # Toggle/switch
+  paper-toggle-button-checked-bar-color: "#50FA7B"
+  paper-toggle-button-checked-button-color: "#50FA7B"
+
+  # Fonts
+  primary-font-family: "'Fira Code', 'JetBrains Mono', monospace"
+  paper-font-common-base_-_font-family: "'Inter', 'Segoe UI', sans-serif"
+  paper-font-headline_-_font-family: "'Inter', 'Segoe UI', sans-serif"
+  paper-font-body1_-_font-family: "'Inter', 'Segoe UI', sans-serif"

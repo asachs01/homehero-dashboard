@@ -1,0 +1,65 @@
+monokai:
+  # Monokai — Classic dark theme with warm, vivid accents
+  # Inspired by the iconic Sublime Text color scheme
+
+  # Backgrounds
+  primary-background-color: "#272822"        # Background
+  secondary-background-color: "#3E3D32"      # Gutter
+  card-background-color: "#272822"
+  ha-card-background: "rgba(39, 40, 34, 0.95)"
+  paper-dialog-background-color: "#272822"
+
+  # Text
+  primary-text-color: "#F8F8F2"              # Foreground
+  secondary-text-color: "#75715E"            # Comment
+  text-primary-color: "#F8F8F2"
+  disabled-text-color: "#75715E"
+
+  # Accents
+  primary-color: "#A6E22E"                   # Green
+  accent-color: "#F92672"                    # Pink/Red
+  light-primary-color: "#E6DB74"             # Yellow
+  dark-primary-color: "#66D9EF"              # Cyan
+
+  # States
+  state-active-color: "#A6E22E"
+  state-icon-active-color: "#A6E22E"
+  switch-checked-color: "#A6E22E"
+  label-badge-text-color: "#F8F8F2"
+  label-badge-background-color: "#3E3D32"
+
+  # Sidebar
+  sidebar-background-color: "#1E1F1C"
+  sidebar-text-color: "#F8F8F2"
+  sidebar-icon-color: "#66D9EF"
+  sidebar-selected-background-color: "#3E3D32"
+  sidebar-selected-icon-color: "#A6E22E"
+  sidebar-selected-text-color: "#F8F8F2"
+
+  # Header
+  app-header-background-color: "#1E1F1C"
+  app-header-text-color: "#F8F8F2"
+
+  # Cards
+  ha-card-border-radius: "10px"
+  ha-card-box-shadow: "0 2px 10px rgba(0, 0, 0, 0.5)"
+  ha-card-border-color: "#3E3D32"
+  ha-card-border-width: "1px"
+
+  # Calendar colors (Monokai palette)
+  calendar-color-1: "#66D9EF"   # Cyan
+  calendar-color-2: "#A6E22E"   # Green
+  calendar-color-3: "#F92672"   # Pink
+  calendar-color-4: "#E6DB74"   # Yellow
+  calendar-color-5: "#AE81FF"   # Purple
+  calendar-color-6: "#FD971F"   # Orange
+
+  # Toggle/switch
+  paper-toggle-button-checked-bar-color: "#A6E22E"
+  paper-toggle-button-checked-button-color: "#A6E22E"
+
+  # Fonts
+  primary-font-family: "'Source Code Pro', 'Fira Mono', monospace"
+  paper-font-common-base_-_font-family: "'Inter', 'Segoe UI', sans-serif"
+  paper-font-headline_-_font-family: "'Inter', 'Segoe UI', sans-serif"
+  paper-font-body1_-_font-family: "'Inter', 'Segoe UI', sans-serif"

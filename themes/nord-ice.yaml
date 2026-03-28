@@ -1,0 +1,52 @@
+nord-ice:
+  # Nord Ice — Cool arctic palette inspired by Nord theme
+  # https://www.nordtheme.com/
+
+  # Backgrounds
+  primary-background-color: "#ECEFF4"        # Nord Snow Storm 3
+  secondary-background-color: "#E5E9F0"      # Nord Snow Storm 2
+  card-background-color: "#ECEFF4"
+  ha-card-background: "rgba(236, 239, 244, 0.92)"
+  paper-dialog-background-color: "#E5E9F0"
+
+  # Text
+  primary-text-color: "#2E3440"              # Nord Polar Night 1
+  secondary-text-color: "#4C566A"            # Nord Polar Night 4
+  text-primary-color: "#2E3440"
+  disabled-text-color: "#7B88A1"
+
+  # Accents
+  primary-color: "#5E81AC"                   # Nord Frost 4
+  accent-color: "#88C0D0"                    # Nord Frost 3
+  light-primary-color: "#81A1C1"             # Nord Frost 2
+  dark-primary-color: "#5E81AC"
+
+  # Sidebar
+  sidebar-background-color: "#3B4252"        # Nord Polar Night 2
+  sidebar-text-color: "#D8DEE9"              # Nord Snow Storm 1
+  sidebar-icon-color: "#81A1C1"
+  sidebar-selected-background-color: "#434C5E"
+  sidebar-selected-icon-color: "#88C0D0"
+  sidebar-selected-text-color: "#ECEFF4"
+
+  # Header
+  app-header-background-color: "#3B4252"
+  app-header-text-color: "#D8DEE9"
+
+  # Cards
+  ha-card-border-radius: "16px"
+  ha-card-box-shadow: "0 2px 8px rgba(46, 52, 64, 0.08)"
+
+  # Calendar colors (Arctic palette)
+  calendar-color-1: "#5E81AC"   # Frost blue
+  calendar-color-2: "#A3BE8C"   # Aurora green
+  calendar-color-3: "#B48EAD"   # Aurora purple
+  calendar-color-4: "#D08770"   # Aurora orange
+  calendar-color-5: "#88C0D0"   # Frost cyan
+  calendar-color-6: "#BF616A"   # Aurora red
+
+  # Fonts
+  primary-font-family: "'Inter', 'Segoe UI', sans-serif"
+  paper-font-common-base_-_font-family: "'Inter', 'Segoe UI', sans-serif"
+  paper-font-headline_-_font-family: "'Inter', 'Segoe UI', sans-serif"
+  paper-font-body1_-_font-family: "'Inter', 'Segoe UI', sans-serif"
