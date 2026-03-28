@@ -8,54 +8,29 @@ views:
       # --- START HEADER SECTION (Date & Weather) ---
       - type: grid
         cards:
-          - type: custom:better-moment-card
-            parentStyle: |
-              line-height:normal;
-            moment:
-              - parentStyle: |
-                  font-size:1em; text-align:center; margin-top:5px;
-                templateRaw: |
-                  {{moment format=cccc}}
-              - parentStyle: |
-                  font-size:1.5em; text-align:center; margin-top:5px;
-                templateRaw: |
-                  {{moment format=LLLL dd, yyyy}}              
-              - parentStyle: |
-                  font-size:4em;  text-align:center; font-weight:400;
-                templateRaw: |
-                  {{moment format=HH:mm}} 
+          - type: custom:clock-weather-card
+            entity: weather.home   # <--- UPDATE THIS ENTITY
+            sun_entity: sun.sun
+            temperature_sensor: weather.home
+            weather_icon_type: line
+            animated_icon: true
+            forecast_rows: 5
+            locale: en-US
+            time_format: 12
+            date_pattern: EEEE, MMMM d
+            hide_today_section: false
+            hide_forecast_section: false
             grid_options:
               columns: 20
+              rows: 4
             card_mod:
               style: |
                 ha-card {
                   background: transparent !important;
                   box-shadow: none !important;
                   border: none !important;
-                }
-          - type: custom:weather-card
-            entity: weather.home   # <--- UPDATE THIS ENTITY
-            current: true
-            details: true
-            forecast: false
-            grid_options:
-              columns: 20
-              rows: 3
-          - type: weather-forecast
-            show_current: false
-            show_forecast: true
-            entity: weather.home   # <--- UPDATE THIS ENTITY
-            forecast_type: daily
-            name: Weather Forecast
-            grid_options:
-              columns: 20
-              rows: 3
-            card_mod:
-              style: |
-                ha-card {
-                  background: transparent !important;
-                  box-shadow: none !important;
-                  border: none !important;
+                  --clock-weather-card-today-date-font-size: 1.2em;
+                  --clock-weather-card-today-time-font-size: 3.5em;
                 }
         column_span: 10
       # --- End HEADER SECTION (Date & Weather) ---  
