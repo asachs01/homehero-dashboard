@@ -253,8 +253,7 @@ views:
                   const calendarView = states['input_select.calendar_view']?.state;
                   if (calendarView === 'Today') return 'today';
                   if (calendarView === 'Tomorrow') return 'tomorrow';
-                  // Fallback
-                  return 'monday'; # <--- UPDATE THIS IF NEEDED, valid values are: monday, tuesday, wednesday, thursday, friday, saturday, sunday
+                  return 'monday';
                 })()
               DAYS: |
                 (() => {
@@ -263,7 +262,6 @@ views:
                   if (calendarView === 'Tomorrow') return 2;
                   if (calendarView === 'Week') return 7;
                   if (calendarView === 'Biweek') return 14;
-                  // else return "month"
                   return "month";
                 })()
             card:
@@ -447,12 +445,29 @@ views:
 
 
                     /* === RESPONSIVE BREAKPOINTS === */
+
+                    /* Tablet landscape */
                     @media (max-width: 1024px) {
+                      ha-card {
+                        height: clamp(400px, 65vh, 780px) !important;
+                        max-height: clamp(400px, 65vh, 780px) !important;
+                        border-radius: 18px !important;
+                      }
                       .day .date .number { font-size: 2em !important; }
                       .day .date .text   { font-size: 0.95em !important; }
+                      .event { font-size: 0.95em !important; max-height: 70px !important; }
                     }
 
+                    /* Tablet portrait / large phone */
                     @media (max-width: 768px) {
+                      ha-card {
+                        height: clamp(360px, 60vh, 650px) !important;
+                        max-height: clamp(360px, 60vh, 650px) !important;
+                        border-radius: 14px !important;
+                      }
+                      .container {
+                        grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+                      }
                       .day .date .number { font-size: 1.6em !important; }
                       .day .date .text   { font-size: 0.85em !important; }
                       .event { font-size: 0.85em !important; line-height: 1.1em !important; }
@@ -466,6 +481,16 @@ views:
 
                       :host {
                         font-size: clamp(10px, 2.6vw, 13px) !important;
+                      }
+
+                      ha-card {
+                        height: clamp(320px, 55vh, 550px) !important;
+                        max-height: clamp(320px, 55vh, 550px) !important;
+                        border-radius: 12px !important;
+                      }
+
+                      .container {
+                        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
                       }
 
                       /* Condensed headers */
@@ -545,6 +570,829 @@ views:
               showDescription: false
         column_span: 10
       # --- End CALENDAR SECTION (Week Planner Card) ---
+
+      # ===================================================================
+      # --- START GROCERY & MEALS SECTION ---
+      # ===================================================================
+      # Section Header
+      - type: grid
+        cards:
+          - type: markdown
+            content: <font color="Black" size="6">Grocery & Meals</font>
+            card_mod:
+              style: |
+                ha-card {
+                  background: transparent !important;
+                  box-shadow: none !important;
+                  border: none !important;
+                  padding: 0 16px;
+                }
+            grid_options:
+              columns: 100
+              rows: auto
+          # Settings gear for grocery section
+          - type: custom:bubble-card
+            card_type: button
+            button_type: name
+            name: ""
+            icon: mdi:cog
+            tap_action:
+              action: navigate
+              navigation_path: "#grocery-settings"
+            styles: |
+              ha-card { background: transparent !important; box-shadow: none !important; }
+              .bubble-icon { color: #999 !important; }
+            grid_options:
+              columns: 20
+              rows: auto
+        column_span: 10
+        visibility:
+          - condition: state
+            entity: input_boolean.show_grocery_section
+            state: "on"
+
+      # Grocery content cards
+      - type: grid
+        cards:
+          # --- GROCY SHOPPING LIST ---
+          - type: vertical-stack
+            cards:
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.show_grocery_list
+                    state: "on"
+                card:
+                  type: vertical-stack
+                  cards:
+                    # Shopping List Header
+                    - type: custom:button-card
+                      name: Shopping List
+                      icon: mdi:cart
+                      show_state: true
+                      entity: sensor.grocy_shopping_list_count
+                      styles:
+                        card:
+                          - background: "rgba(255, 255, 255, 0.85)"
+                          - border-radius: "20px"
+                          - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+                          - padding: "16px"
+                          - border: "none"
+                        grid:
+                          - grid-template-areas: '"i n s"'
+                          - grid-template-columns: "40px 1fr auto"
+                        icon:
+                          - color: "#4CAF50"
+                          - width: "32px"
+                        name:
+                          - font-size: "1.2em"
+                          - font-weight: "600"
+                          - color: "#333"
+                          - justify-self: "start"
+                        state:
+                          - font-size: "1.1em"
+                          - color: "#666"
+
+                    # Quick Add Item
+                    - type: horizontal-stack
+                      cards:
+                        - type: entities
+                          entities:
+                            - entity: input_text.grocy_quick_add_item
+                              name: Add item...
+                          card_mod:
+                            style: |
+                              ha-card {
+                                background: rgba(255, 255, 255, 0.7) !important;
+                                border-radius: 16px !important;
+                                box-shadow: none !important;
+                                border: 1px solid rgba(0,0,0,0.05) !important;
+                              }
+                        - type: custom:button-card
+                          name: Add
+                          icon: mdi:plus
+                          tap_action:
+                            action: call-service
+                            service: script.grocy_quick_add_to_shopping_list
+                          styles:
+                            card:
+                              - background: "#4CAF50"
+                              - border-radius: "16px"
+                              - color: "white"
+                              - height: "100%"
+                            icon:
+                              - color: "white"
+                              - width: "24px"
+                            name:
+                              - font-size: "0.9em"
+                              - color: "white"
+            grid_options:
+              columns: 30
+              rows: auto
+
+          # --- EXPIRING ITEMS ALERT ---
+          - type: conditional
+            conditions:
+              - entity: input_boolean.show_grocery_list
+                state: "on"
+            card:
+              type: custom:button-card
+              entity: sensor.grocy_expiring_soon
+              name: Expiring Soon
+              icon: mdi:clock-alert-outline
+              show_state: true
+              show_name: true
+              state_display: |
+                [[[
+                  const count = entity.state;
+                  if (count == '0') return 'All good!';
+                  return count + ' item' + (count == '1' ? '' : 's');
+                ]]]
+              styles:
+                card:
+                  - background: |
+                      [[[
+                        const count = parseInt(entity.state);
+                        if (count > 0) return 'rgba(255, 152, 0, 0.15)';
+                        return 'rgba(76, 175, 80, 0.1)';
+                      ]]]
+                  - border-radius: "20px"
+                  - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+                  - padding: "16px"
+                  - border: "none"
+                icon:
+                  - color: |
+                      [[[
+                        const count = parseInt(entity.state);
+                        if (count > 0) return '#FF9800';
+                        return '#4CAF50';
+                      ]]]
+                  - width: "36px"
+                name:
+                  - font-size: "1em"
+                  - font-weight: "600"
+                  - color: "#333"
+                state:
+                  - font-size: "0.95em"
+                  - color: "#666"
+            grid_options:
+              columns: 30
+              rows: auto
+
+          # --- MEAL PLAN TODAY ---
+          - type: vertical-stack
+            cards:
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.show_meal_plan
+                    state: "on"
+                card:
+                  type: custom:button-card
+                  name: "Today's Meals"
+                  icon: mdi:silverware-fork-knife
+                  entity: sensor.grocy_meal_plan_today
+                  show_state: true
+                  styles:
+                    card:
+                      - background: "rgba(255, 255, 255, 0.85)"
+                      - border-radius: "20px"
+                      - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+                      - padding: "20px"
+                      - border: "none"
+                    grid:
+                      - grid-template-areas: '"i n" "i s"'
+                      - grid-template-columns: "50px 1fr"
+                    icon:
+                      - color: "#FF7043"
+                      - width: "40px"
+                    name:
+                      - font-size: "1.1em"
+                      - font-weight: "600"
+                      - color: "#333"
+                      - justify-self: "start"
+                    state:
+                      - font-size: "1em"
+                      - color: "#555"
+                      - justify-self: "start"
+                      - white-space: "normal"
+                      - text-align: "left"
+            grid_options:
+              columns: 30
+              rows: auto
+
+          # --- ANYLIST SHARED LIST ---
+          - type: vertical-stack
+            cards:
+              - type: conditional
+                conditions:
+                  - entity: input_boolean.show_anylist
+                    state: "on"
+                card:
+                  type: vertical-stack
+                  cards:
+                    - type: custom:button-card
+                      name: AnyList
+                      icon: mdi:format-list-checks
+                      show_name: true
+                      styles:
+                        card:
+                          - background: "rgba(255, 255, 255, 0.85)"
+                          - border-radius: "20px"
+                          - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+                          - padding: "16px"
+                          - border: "none"
+                        icon:
+                          - color: "#2196F3"
+                          - width: "32px"
+                        name:
+                          - font-size: "1.2em"
+                          - font-weight: "600"
+                          - color: "#333"
+
+                    # Placeholder until AnyList sensor is configured
+                    - type: markdown
+                      content: >
+                        Configure AnyList sensor in `packages/grocery_integration.yaml`
+                        to display your shared list here.
+                      card_mod:
+                        style: |
+                          ha-card {
+                            background: rgba(255, 255, 255, 0.5) !important;
+                            border-radius: 16px !important;
+                            box-shadow: none !important;
+                            border: 1px dashed rgba(0,0,0,0.15) !important;
+                            font-size: 0.9em; color: #888;
+                          }
+
+                    # Quick Add to AnyList
+                    - type: horizontal-stack
+                      cards:
+                        - type: entities
+                          entities:
+                            - entity: input_text.anylist_quick_add_item
+                              name: Add item...
+                          card_mod:
+                            style: |
+                              ha-card {
+                                background: rgba(255, 255, 255, 0.7) !important;
+                                border-radius: 16px !important;
+                                box-shadow: none !important;
+                                border: 1px solid rgba(0,0,0,0.05) !important;
+                              }
+                        - type: custom:button-card
+                          name: Add
+                          icon: mdi:plus
+                          tap_action:
+                            action: call-service
+                            service: script.anylist_quick_add_item
+                          styles:
+                            card:
+                              - background: "#2196F3"
+                              - border-radius: "16px"
+                              - color: "white"
+                              - height: "100%"
+                            icon:
+                              - color: "white"
+                              - width: "24px"
+                            name:
+                              - font-size: "0.9em"
+                              - color: "white"
+            grid_options:
+              columns: 30
+              rows: auto
+
+        column_span: 10
+        visibility:
+          - condition: state
+            entity: input_boolean.show_grocery_section
+            state: "on"
+      # --- End GROCERY & MEALS SECTION ---
+
+      # ===================================================================
+      # --- START CHORES & ROUTINES SECTION ---
+      # ===================================================================
+      # Section Header with daily progress
+      - type: grid
+        cards:
+          - type: markdown
+            content: <font color="Black" size="6">Chores & Routines</font>
+            card_mod:
+              style: |
+                ha-card {
+                  background: transparent !important;
+                  box-shadow: none !important;
+                  border: none !important;
+                  padding: 0 16px;
+                }
+            grid_options:
+              columns: 80
+              rows: auto
+
+          # Overall daily progress
+          - type: custom:button-card
+            entity: sensor.chore_daily_completion
+            name: "Today's Progress"
+            icon: mdi:chart-arc
+            show_state: true
+            state_display: "[[[ return entity.state + '% done'; ]]]"
+            styles:
+              card:
+                - background: "rgba(255, 255, 255, 0.85)"
+                - border-radius: "20px"
+                - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+                - padding: "12px 20px"
+                - border: "none"
+              grid:
+                - grid-template-areas: '"i n s"'
+                - grid-template-columns: "36px 1fr auto"
+              icon:
+                - color: |
+                    [[[
+                      const pct = parseInt(entity.state);
+                      if (pct >= 100) return '#4CAF50';
+                      if (pct >= 50) return '#FF9800';
+                      return '#F44336';
+                    ]]]
+                - width: "30px"
+              name:
+                - font-size: "1.1em"
+                - font-weight: "600"
+                - color: "#333"
+                - justify-self: "start"
+              state:
+                - font-size: "1em"
+                - color: "#666"
+            custom_fields:
+              bar: |
+                [[[
+                  const pct = entity.state;
+                  const color = pct >= 100 ? '#4CAF50' : pct >= 50 ? '#FF9800' : '#F44336';
+                  return `<div style="width:${pct}%;height:4px;background:${color};border-radius:0 0 20px 20px;position:absolute;bottom:0;left:0;"></div>`;
+                ]]]
+            grid_options:
+              columns: 30
+              rows: auto
+
+          # Admin gear
+          - type: custom:bubble-card
+            card_type: button
+            button_type: name
+            name: ""
+            icon: mdi:cog
+            tap_action:
+              action: navigate
+              navigation_path: "#chores-admin"
+            styles: |
+              ha-card { background: transparent !important; box-shadow: none !important; }
+              .bubble-icon { color: #999 !important; }
+            grid_options:
+              columns: 10
+              rows: auto
+        column_span: 10
+        visibility:
+          - condition: state
+            entity: input_boolean.show_chores_section
+            state: "on"
+
+      # Family member chore cards
+      - type: grid
+        cards:
+          # --- MEMBER 1 ---
+          - type: vertical-stack
+            cards:
+              - type: custom:button-card
+                entity: sensor.chore_completion_member_1
+                name: "[[[ return states['input_text.chore_member_1_name'].state; ]]]"
+                icon: mdi:account-circle
+                show_state: true
+                state_display: "[[[ return entity.state + '%'; ]]]"
+                styles:
+                  card:
+                    - background: "rgba(255, 255, 255, 0.9)"
+                    - border-radius: "20px 20px 0 0"
+                    - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+                    - padding: "16px"
+                    - border: "none"
+                  grid:
+                    - grid-template-areas: '"i n s"'
+                    - grid-template-columns: "44px 1fr auto"
+                  icon:
+                    - color: "#7E57C2"
+                    - width: "36px"
+                  name:
+                    - font-size: "1.15em"
+                    - font-weight: "700"
+                    - color: "#333"
+                    - justify-self: "start"
+                  state:
+                    - font-size: "1.1em"
+                    - font-weight: "600"
+                    - color: |
+                        [[[
+                          const pct = parseInt(entity.state);
+                          if (pct >= 100) return '#4CAF50';
+                          if (pct >= 50) return '#FF9800';
+                          return '#F44336';
+                        ]]]
+              - type: custom:button-card
+                entity: counter.chore_streak_member_1
+                name: "Streak"
+                icon: mdi:fire
+                show_state: true
+                state_display: "[[[ return entity.state + ' days'; ]]]"
+                styles:
+                  card:
+                    - background: "rgba(255, 152, 0, 0.08)"
+                    - border-radius: "0"
+                    - box-shadow: "none"
+                    - padding: "6px 16px"
+                    - border: "none"
+                    - min-height: "auto"
+                  grid:
+                    - grid-template-areas: '"i n s"'
+                    - grid-template-columns: "24px 1fr auto"
+                  icon:
+                    - color: "#FF9800"
+                    - width: "20px"
+                  name:
+                    - font-size: "0.85em"
+                    - color: "#888"
+                    - justify-self: "start"
+                  state:
+                    - font-size: "0.9em"
+                    - font-weight: "600"
+                    - color: "#FF9800"
+              # Member 1 chores (default assignments: chores 1, 3, 9)
+              - type: entities
+                entities:
+                  - entity: input_boolean.chore_1_done
+                  - entity: input_boolean.chore_3_done
+                  - entity: input_boolean.chore_9_done
+                card_mod:
+                  style: |
+                    ha-card {
+                      background: rgba(255, 255, 255, 0.7) !important;
+                      border-radius: 0 0 20px 20px !important;
+                      box-shadow: none !important;
+                      padding-bottom: 8px;
+                    }
+            grid_options:
+              columns: 30
+              rows: auto
+            visibility:
+              - condition: numeric_state
+                entity: input_number.chore_active_members
+                above: 0
+
+          # --- MEMBER 2 ---
+          - type: vertical-stack
+            cards:
+              - type: custom:button-card
+                entity: sensor.chore_completion_member_2
+                name: "[[[ return states['input_text.chore_member_2_name'].state; ]]]"
+                icon: mdi:account-circle
+                show_state: true
+                state_display: "[[[ return entity.state + '%'; ]]]"
+                styles:
+                  card:
+                    - background: "rgba(255, 255, 255, 0.9)"
+                    - border-radius: "20px 20px 0 0"
+                    - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+                    - padding: "16px"
+                    - border: "none"
+                  grid:
+                    - grid-template-areas: '"i n s"'
+                    - grid-template-columns: "44px 1fr auto"
+                  icon:
+                    - color: "#42A5F5"
+                    - width: "36px"
+                  name:
+                    - font-size: "1.15em"
+                    - font-weight: "700"
+                    - color: "#333"
+                    - justify-self: "start"
+                  state:
+                    - font-size: "1.1em"
+                    - font-weight: "600"
+                    - color: |
+                        [[[
+                          const pct = parseInt(entity.state);
+                          if (pct >= 100) return '#4CAF50';
+                          if (pct >= 50) return '#FF9800';
+                          return '#F44336';
+                        ]]]
+              - type: custom:button-card
+                entity: counter.chore_streak_member_2
+                name: "Streak"
+                icon: mdi:fire
+                show_state: true
+                state_display: "[[[ return entity.state + ' days'; ]]]"
+                styles:
+                  card:
+                    - background: "rgba(255, 152, 0, 0.08)"
+                    - border-radius: "0"
+                    - box-shadow: "none"
+                    - padding: "6px 16px"
+                    - border: "none"
+                    - min-height: "auto"
+                  grid:
+                    - grid-template-areas: '"i n s"'
+                    - grid-template-columns: "24px 1fr auto"
+                  icon:
+                    - color: "#FF9800"
+                    - width: "20px"
+                  name:
+                    - font-size: "0.85em"
+                    - color: "#888"
+                    - justify-self: "start"
+                  state:
+                    - font-size: "0.9em"
+                    - font-weight: "600"
+                    - color: "#FF9800"
+              - type: entities
+                entities:
+                  - entity: input_boolean.chore_2_done
+                  - entity: input_boolean.chore_4_done
+                  - entity: input_boolean.chore_10_done
+                card_mod:
+                  style: |
+                    ha-card {
+                      background: rgba(255, 255, 255, 0.7) !important;
+                      border-radius: 0 0 20px 20px !important;
+                      box-shadow: none !important;
+                      padding-bottom: 8px;
+                    }
+            grid_options:
+              columns: 30
+              rows: auto
+            visibility:
+              - condition: numeric_state
+                entity: input_number.chore_active_members
+                above: 1
+
+          # --- MEMBER 3 ---
+          - type: vertical-stack
+            cards:
+              - type: custom:button-card
+                entity: sensor.chore_completion_member_3
+                name: "[[[ return states['input_text.chore_member_3_name'].state; ]]]"
+                icon: mdi:account-circle
+                show_state: true
+                state_display: "[[[ return entity.state + '%'; ]]]"
+                styles:
+                  card:
+                    - background: "rgba(255, 255, 255, 0.9)"
+                    - border-radius: "20px 20px 0 0"
+                    - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+                    - padding: "16px"
+                    - border: "none"
+                  grid:
+                    - grid-template-areas: '"i n s"'
+                    - grid-template-columns: "44px 1fr auto"
+                  icon:
+                    - color: "#66BB6A"
+                    - width: "36px"
+                  name:
+                    - font-size: "1.15em"
+                    - font-weight: "700"
+                    - color: "#333"
+                    - justify-self: "start"
+                  state:
+                    - font-size: "1.1em"
+                    - font-weight: "600"
+                    - color: |
+                        [[[
+                          const pct = parseInt(entity.state);
+                          if (pct >= 100) return '#4CAF50';
+                          if (pct >= 50) return '#FF9800';
+                          return '#F44336';
+                        ]]]
+              - type: custom:button-card
+                entity: counter.chore_streak_member_3
+                name: "Streak"
+                icon: mdi:fire
+                show_state: true
+                state_display: "[[[ return entity.state + ' days'; ]]]"
+                styles:
+                  card:
+                    - background: "rgba(255, 152, 0, 0.08)"
+                    - border-radius: "0"
+                    - box-shadow: "none"
+                    - padding: "6px 16px"
+                    - border: "none"
+                    - min-height: "auto"
+                  grid:
+                    - grid-template-areas: '"i n s"'
+                    - grid-template-columns: "24px 1fr auto"
+                  icon:
+                    - color: "#FF9800"
+                    - width: "20px"
+                  name:
+                    - font-size: "0.85em"
+                    - color: "#888"
+                    - justify-self: "start"
+                  state:
+                    - font-size: "0.9em"
+                    - font-weight: "600"
+                    - color: "#FF9800"
+              - type: entities
+                entities:
+                  - entity: input_boolean.chore_5_done
+                  - entity: input_boolean.chore_6_done
+                card_mod:
+                  style: |
+                    ha-card {
+                      background: rgba(255, 255, 255, 0.7) !important;
+                      border-radius: 0 0 20px 20px !important;
+                      box-shadow: none !important;
+                      padding-bottom: 8px;
+                    }
+            grid_options:
+              columns: 30
+              rows: auto
+            visibility:
+              - condition: numeric_state
+                entity: input_number.chore_active_members
+                above: 2
+
+          # --- MEMBER 4 ---
+          - type: vertical-stack
+            cards:
+              - type: custom:button-card
+                entity: sensor.chore_completion_member_4
+                name: "[[[ return states['input_text.chore_member_4_name'].state; ]]]"
+                icon: mdi:account-circle
+                show_state: true
+                state_display: "[[[ return entity.state + '%'; ]]]"
+                styles:
+                  card:
+                    - background: "rgba(255, 255, 255, 0.9)"
+                    - border-radius: "20px 20px 0 0"
+                    - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+                    - padding: "16px"
+                    - border: "none"
+                  grid:
+                    - grid-template-areas: '"i n s"'
+                    - grid-template-columns: "44px 1fr auto"
+                  icon:
+                    - color: "#FFA726"
+                    - width: "36px"
+                  name:
+                    - font-size: "1.15em"
+                    - font-weight: "700"
+                    - color: "#333"
+                    - justify-self: "start"
+                  state:
+                    - font-size: "1.1em"
+                    - font-weight: "600"
+                    - color: |
+                        [[[
+                          const pct = parseInt(entity.state);
+                          if (pct >= 100) return '#4CAF50';
+                          if (pct >= 50) return '#FF9800';
+                          return '#F44336';
+                        ]]]
+              - type: custom:button-card
+                entity: counter.chore_streak_member_4
+                name: "Streak"
+                icon: mdi:fire
+                show_state: true
+                state_display: "[[[ return entity.state + ' days'; ]]]"
+                styles:
+                  card:
+                    - background: "rgba(255, 152, 0, 0.08)"
+                    - border-radius: "0"
+                    - box-shadow: "none"
+                    - padding: "6px 16px"
+                    - border: "none"
+                    - min-height: "auto"
+                  grid:
+                    - grid-template-areas: '"i n s"'
+                    - grid-template-columns: "24px 1fr auto"
+                  icon:
+                    - color: "#FF9800"
+                    - width: "20px"
+                  name:
+                    - font-size: "0.85em"
+                    - color: "#888"
+                    - justify-self: "start"
+                  state:
+                    - font-size: "0.9em"
+                    - font-weight: "600"
+                    - color: "#FF9800"
+              - type: entities
+                entities:
+                  - entity: input_boolean.chore_7_done
+                  - entity: input_boolean.chore_8_done
+                card_mod:
+                  style: |
+                    ha-card {
+                      background: rgba(255, 255, 255, 0.7) !important;
+                      border-radius: 0 0 20px 20px !important;
+                      box-shadow: none !important;
+                      padding-bottom: 8px;
+                    }
+            grid_options:
+              columns: 30
+              rows: auto
+            visibility:
+              - condition: numeric_state
+                entity: input_number.chore_active_members
+                above: 3
+
+        column_span: 10
+        visibility:
+          - condition: state
+            entity: input_boolean.show_chores_section
+            state: "on"
+
+      # Leaderboard & Admin
+      - type: grid
+        cards:
+          # Leaderboard
+          - type: vertical-stack
+            cards:
+              - type: custom:button-card
+                name: Leaderboard
+                icon: mdi:trophy
+                show_icon: true
+                show_name: true
+                styles:
+                  card:
+                    - background: "rgba(255, 255, 255, 0.85)"
+                    - border-radius: "20px 20px 0 0"
+                    - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+                    - padding: "16px"
+                    - border: "none"
+                  icon:
+                    - color: "#FFD600"
+                    - width: "32px"
+                  name:
+                    - font-size: "1.2em"
+                    - font-weight: "700"
+                    - color: "#333"
+              - type: markdown
+                content: |
+                  {% set members = [] %}
+                  {% set active = states('input_number.chore_active_members') | int(4) %}
+                  {% for m in range(1, active + 1) %}
+                    {% set name = states('input_text.chore_member_' ~ m ~ '_name') %}
+                    {% set pct = states('sensor.chore_completion_member_' ~ m) | int(0) %}
+                    {% set streak = states('counter.chore_streak_member_' ~ m) | int(0) %}
+                    {% set members = members + [{'name': name, 'pct': pct, 'streak': streak}] %}
+                  {% endfor %}
+                  {% for m in members | sort(attribute='pct', reverse=true) %}
+                  **{{ loop.index }}.** {{ m.name }} &mdash; {{ m.pct }}% today | {{ m.streak }} day streak
+                  {% endfor %}
+                card_mod:
+                  style: |
+                    ha-card {
+                      background: rgba(255, 255, 255, 0.7) !important;
+                      border-radius: 0 0 20px 20px !important;
+                      box-shadow: none !important;
+                      border: none !important;
+                      padding: 8px 20px 16px;
+                      font-size: 1.05em;
+                      line-height: 2em;
+                    }
+            grid_options:
+              columns: 60
+              rows: auto
+
+          # Admin button
+          - type: custom:button-card
+            name: Manage Chores
+            icon: mdi:cog
+            show_icon: true
+            show_name: true
+            tap_action:
+              action: navigate
+              navigation_path: "#chores-admin"
+            styles:
+              card:
+                - background: "#393745"
+                - border-radius: "20px"
+                - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+                - padding: "16px"
+                - border: "none"
+                - cursor: "pointer"
+              icon:
+                - color: "snow"
+                - width: "28px"
+              name:
+                - font-size: "1.1em"
+                - font-weight: "600"
+                - color: "snow"
+            grid_options:
+              columns: 60
+              rows: auto
+
+        column_span: 10
+        visibility:
+          - condition: state
+            entity: input_boolean.show_chores_section
+            state: "on"
+      # --- End CHORES & ROUTINES SECTION ---
+
       # --- START POPUP SECTION (Hidden) ---
       - type: grid
         cards:
@@ -606,8 +1454,8 @@ views:
                   - type: custom:button-card
                     name: Add Event to Calendar
                     tap_action:
-                      action: call-service
-                      service: script.add_google_calendar_event
+                      action: perform-action
+                      perform_action: script.add_google_calendar_event
                     styles:
                       card:
                         - background-color: |
@@ -619,6 +1467,225 @@ views:
                               if (states['input_select.calendar_select'].state == 'Family') return "var(--family-default-primary-color)";
                               return "gray";
                             ]]]                
+      # --- Grocery Settings Popup ---
+      - type: grid
+        cards:
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: "#grocery-settings"
+                button_type: name
+                name: Grocery & Meal Settings
+                icon: mdi:food-apple
+                show_icon: true
+                show_name: true
+                styles: |
+                  .bubble-button-card-container {
+                    background: #4CAF50 !important;
+                  }
+              - type: entities
+                title: Panel Visibility
+                entities:
+                  - entity: input_boolean.show_grocery_section
+                    name: Show Grocery & Meals Section
+                  - entity: input_boolean.show_grocery_list
+                    name: Show Shopping List
+                  - entity: input_boolean.show_meal_plan
+                    name: Show Meal Plan
+                  - entity: input_boolean.show_anylist
+                    name: Show AnyList
+                card_mod:
+                  style: |
+                    ha-card {
+                      background: rgba(255, 255, 255, 0.9) !important;
+                      border-radius: 16px !important;
+                    }
+      # --- Chores Admin Popup ---
+      - type: grid
+        cards:
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: "#chores-admin"
+                button_type: name
+                name: Chore Administration
+                icon: mdi:clipboard-edit
+                show_icon: true
+                show_name: true
+                styles: |
+                  .bubble-button-card-container {
+                    background: #393745 !important;
+                  }
+              # Family member names
+              - type: entities
+                title: Family Members
+                entities:
+                  - entity: input_number.chore_active_members
+                    name: Active Members
+                  - entity: input_text.chore_member_1_name
+                    name: Member 1 Name
+                  - entity: input_text.chore_member_2_name
+                    name: Member 2 Name
+                  - entity: input_text.chore_member_3_name
+                    name: Member 3 Name
+                  - entity: input_text.chore_member_4_name
+                    name: Member 4 Name
+                  - entity: input_text.chore_member_5_name
+                    name: Member 5 Name
+                  - entity: input_text.chore_member_6_name
+                    name: Member 6 Name
+                card_mod:
+                  style: |
+                    ha-card {
+                      background: rgba(255, 255, 255, 0.9) !important;
+                      border-radius: 16px !important;
+                    }
+              # Section visibility
+              - type: entities
+                title: Section Visibility
+                entities:
+                  - entity: input_boolean.show_chores_section
+                    name: Show Chores Section
+                card_mod:
+                  style: |
+                    ha-card {
+                      background: rgba(255, 255, 255, 0.9) !important;
+                      border-radius: 16px !important;
+                    }
+              # Chore definitions
+              - type: entities
+                title: Chore Setup
+                entities:
+                  - entity: input_number.chore_active_count
+                    name: Active Chores
+                  - type: divider
+                  - entity: input_text.chore_1_name
+                  - entity: input_number.chore_1_assigned
+                    name: "Assigned to member #"
+                  - type: divider
+                  - entity: input_text.chore_2_name
+                  - entity: input_number.chore_2_assigned
+                    name: "Assigned to member #"
+                  - type: divider
+                  - entity: input_text.chore_3_name
+                  - entity: input_number.chore_3_assigned
+                    name: "Assigned to member #"
+                  - type: divider
+                  - entity: input_text.chore_4_name
+                  - entity: input_number.chore_4_assigned
+                    name: "Assigned to member #"
+                  - type: divider
+                  - entity: input_text.chore_5_name
+                  - entity: input_number.chore_5_assigned
+                    name: "Assigned to member #"
+                  - type: divider
+                  - entity: input_text.chore_6_name
+                  - entity: input_number.chore_6_assigned
+                    name: "Assigned to member #"
+                  - type: divider
+                  - entity: input_text.chore_7_name
+                  - entity: input_number.chore_7_assigned
+                    name: "Assigned to member #"
+                  - type: divider
+                  - entity: input_text.chore_8_name
+                  - entity: input_number.chore_8_assigned
+                    name: "Assigned to member #"
+                  - type: divider
+                  - entity: input_text.chore_9_name
+                  - entity: input_number.chore_9_assigned
+                    name: "Assigned to member #"
+                  - type: divider
+                  - entity: input_text.chore_10_name
+                  - entity: input_number.chore_10_assigned
+                    name: "Assigned to member #"
+                card_mod:
+                  style: |
+                    ha-card {
+                      background: rgba(255, 255, 255, 0.9) !important;
+                      border-radius: 16px !important;
+                    }
+      # --- Edit/Delete Event Popup ---
+      - type: grid
+        cards:
+          - type: vertical-stack
+            cards:
+              - type: custom:bubble-card
+                card_type: pop-up
+                hash: "#editcalendarevent"
+                button_type: name
+                name: Edit Calendar Event
+                icon: mdi:calendar-edit
+                show_icon: true
+                show_name: true
+                styles: |
+                  .bubble-button-card-container {
+                    background: var(--family-default-primary-color) !important;
+                  }
+              - type: vertical-stack
+                cards:
+                  - type: entities
+                    entities:
+                      - entity: input_text.edit_event_uid
+                        name: Event UID
+                      - entity: input_select.edit_event_calendar
+                        name: Calendar
+                      - entity: input_text.edit_event_title
+                        name: Event Title
+                      - entity: input_text.edit_event_description
+                        name: Description
+                      - entity: input_boolean.edit_event_all_day
+                        name: All Day Event
+                    title: Edit Event
+                  - type: conditional
+                    conditions:
+                      - entity: input_boolean.edit_event_all_day
+                        state: "off"
+                    card:
+                      type: entities
+                      entities:
+                        - entity: input_datetime.edit_event_start
+                          name: Start Time
+                        - entity: input_datetime.edit_event_end
+                          name: End Time
+                  - type: conditional
+                    conditions:
+                      - entity: input_boolean.edit_event_all_day
+                        state: "on"
+                    card:
+                      type: entities
+                      entities:
+                        - entity: input_datetime.edit_event_day_start
+                          name: Start Date
+                        - entity: input_datetime.edit_event_day_end
+                          name: End Date
+                  - type: horizontal-stack
+                    cards:
+                      - type: custom:button-card
+                        name: Save Changes
+                        icon: mdi:content-save
+                        tap_action:
+                          action: perform-action
+                          perform_action: script.save_edited_calendar_event
+                        styles:
+                          card:
+                            - background-color: "#4CAF50"
+                            - color: white
+                      - type: custom:button-card
+                        name: Delete Event
+                        icon: mdi:delete
+                        tap_action:
+                          action: perform-action
+                          perform_action: script.delete_calendar_event
+                          confirmation:
+                            text: Are you sure you want to delete this event?
+                        styles:
+                          card:
+                            - background-color: "#F44336"
+                            - color: white
+        column_span: 10
+      # --- End Edit/Delete Event Popup ---
     cards: []
     icon: mdi:calendar-blank-multiple
     background:

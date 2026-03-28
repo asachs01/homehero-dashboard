@@ -1,0 +1,818 @@
+# ==============================================================================
+#  CHORES & ROUTINES DASHBOARD SECTION
+# ==============================================================================
+#  Add these cards to your dashboard.yaml under the sections list.
+#  Requires: packages/chores.yaml
+#  Requires: card-mod, button-card, bubble-card (HACS)
+# ==============================================================================
+
+# --- CHORES SECTION HEADER ---
+- type: grid
+  cards:
+    - type: markdown
+      content: <font color="Black" size="6">Chores & Routines</font>
+      card_mod:
+        style: |
+          ha-card {
+            background: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 16px;
+          }
+      grid_options:
+        columns: 100
+        rows: auto
+
+    # Overall daily progress bar
+    - type: custom:button-card
+      entity: sensor.chore_daily_completion
+      name: "Today's Progress"
+      icon: mdi:chart-arc
+      show_state: true
+      state_display: "[[[ return entity.state + '% done'; ]]]"
+      styles:
+        card:
+          - background: "rgba(255, 255, 255, 0.85)"
+          - border-radius: "20px"
+          - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+          - padding: "12px 20px"
+          - border: "none"
+        grid:
+          - grid-template-areas: '"i n s"'
+          - grid-template-columns: "36px 1fr auto"
+        icon:
+          - color: |
+              [[[
+                const pct = parseInt(entity.state);
+                if (pct >= 100) return '#4CAF50';
+                if (pct >= 50) return '#FF9800';
+                return '#F44336';
+              ]]]
+          - width: "30px"
+        name:
+          - font-size: "1.1em"
+          - font-weight: "600"
+          - color: "#333"
+          - justify-self: "start"
+        state:
+          - font-size: "1em"
+          - color: "#666"
+        custom_fields:
+          bar:
+            - position: "absolute"
+            - bottom: "0"
+            - left: "0"
+            - height: "4px"
+            - border-radius: "0 0 20px 20px"
+            - transition: "width 0.5s ease"
+      custom_fields:
+        bar: |
+          [[[
+            const pct = entity.state;
+            const color = pct >= 100 ? '#4CAF50' : pct >= 50 ? '#FF9800' : '#F44336';
+            return `<div style="width:${pct}%;height:4px;background:${color};border-radius:0 0 20px 20px;position:absolute;bottom:0;left:0;"></div>`;
+          ]]]
+      grid_options:
+        columns: 20
+        rows: auto
+  column_span: 10
+  visibility:
+    - condition: state
+      entity: input_boolean.show_chores_section
+      state: "on"
+
+# --- FAMILY MEMBER CHORE CARDS ---
+- type: grid
+  cards:
+    # ===================================================================
+    #  MEMBER 1 CARD
+    # ===================================================================
+    - type: vertical-stack
+      cards:
+        - type: custom:button-card
+          entity: sensor.chore_completion_member_1
+          name: "[[[ return states['input_text.chore_member_1_name'].state; ]]]"
+          icon: mdi:account-circle
+          show_state: true
+          state_display: "[[[ return entity.state + '%'; ]]]"
+          styles:
+            card:
+              - background: "rgba(255, 255, 255, 0.9)"
+              - border-radius: "20px 20px 0 0"
+              - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+              - padding: "16px"
+              - border: "none"
+            grid:
+              - grid-template-areas: '"i n s"'
+              - grid-template-columns: "44px 1fr auto"
+            icon:
+              - color: "#7E57C2"
+              - width: "36px"
+            name:
+              - font-size: "1.15em"
+              - font-weight: "700"
+              - color: "#333"
+              - justify-self: "start"
+            state:
+              - font-size: "1.1em"
+              - font-weight: "600"
+              - color: |
+                  [[[
+                    const pct = parseInt(entity.state);
+                    if (pct >= 100) return '#4CAF50';
+                    if (pct >= 50) return '#FF9800';
+                    return '#F44336';
+                  ]]]
+
+        # Streak badge
+        - type: custom:button-card
+          entity: counter.chore_streak_member_1
+          name: "Streak"
+          icon: mdi:fire
+          show_state: true
+          state_display: "[[[ return entity.state + ' days'; ]]]"
+          styles:
+            card:
+              - background: "rgba(255, 152, 0, 0.08)"
+              - border-radius: "0"
+              - box-shadow: "none"
+              - padding: "6px 16px"
+              - border: "none"
+              - min-height: "auto"
+            grid:
+              - grid-template-areas: '"i n s"'
+              - grid-template-columns: "24px 1fr auto"
+            icon:
+              - color: "#FF9800"
+              - width: "20px"
+            name:
+              - font-size: "0.85em"
+              - color: "#888"
+              - justify-self: "start"
+            state:
+              - font-size: "0.9em"
+              - font-weight: "600"
+              - color: "#FF9800"
+
+        # Member 1 chore list (shows chores assigned to member 1)
+        - type: custom:auto-entities
+          filter:
+            include:
+              - entity_id: "input_boolean.chore_*_done"
+                options:
+                  type: custom:button-card
+                  show_icon: true
+                  show_name: true
+                  show_state: false
+                  icon: |
+                    [[[
+                      return entity.state === 'on' ? 'mdi:checkbox-marked-circle' : 'mdi:checkbox-blank-circle-outline';
+                    ]]]
+                  name: |
+                    [[[
+                      const num = entity.entity_id.match(/chore_(\d+)_done/)[1];
+                      return states['input_text.chore_' + num + '_name']?.state || 'Chore ' + num;
+                    ]]]
+                  tap_action:
+                    action: toggle
+                  styles:
+                    card:
+                      - background: "transparent"
+                      - box-shadow: "none"
+                      - border: "none"
+                      - padding: "4px 16px"
+                      - margin: "0"
+                    grid:
+                      - grid-template-areas: '"i n"'
+                      - grid-template-columns: "30px 1fr"
+                    icon:
+                      - width: "22px"
+                      - color: |
+                          [[[
+                            return entity.state === 'on' ? '#4CAF50' : '#CCC';
+                          ]]]
+                    name:
+                      - font-size: "0.95em"
+                      - justify-self: "start"
+                      - text-decoration: |
+                          [[[
+                            return entity.state === 'on' ? 'line-through' : 'none';
+                          ]]]
+                      - color: |
+                          [[[
+                            return entity.state === 'on' ? '#AAA' : '#333';
+                          ]]]
+          card:
+            type: vertical-stack
+          card_mod:
+            style: |
+              ha-card {
+                background: rgba(255, 255, 255, 0.7) !important;
+                border-radius: 0 0 20px 20px !important;
+                box-shadow: none !important;
+                padding-bottom: 8px;
+              }
+      grid_options:
+        columns: 30
+        rows: auto
+      visibility:
+        - condition: numeric_state
+          entity: input_number.chore_active_members
+          above: 0
+
+    # ===================================================================
+    #  MEMBER 2 CARD
+    # ===================================================================
+    - type: vertical-stack
+      cards:
+        - type: custom:button-card
+          entity: sensor.chore_completion_member_2
+          name: "[[[ return states['input_text.chore_member_2_name'].state; ]]]"
+          icon: mdi:account-circle
+          show_state: true
+          state_display: "[[[ return entity.state + '%'; ]]]"
+          styles:
+            card:
+              - background: "rgba(255, 255, 255, 0.9)"
+              - border-radius: "20px 20px 0 0"
+              - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+              - padding: "16px"
+              - border: "none"
+            grid:
+              - grid-template-areas: '"i n s"'
+              - grid-template-columns: "44px 1fr auto"
+            icon:
+              - color: "#42A5F5"
+              - width: "36px"
+            name:
+              - font-size: "1.15em"
+              - font-weight: "700"
+              - color: "#333"
+              - justify-self: "start"
+            state:
+              - font-size: "1.1em"
+              - font-weight: "600"
+              - color: |
+                  [[[
+                    const pct = parseInt(entity.state);
+                    if (pct >= 100) return '#4CAF50';
+                    if (pct >= 50) return '#FF9800';
+                    return '#F44336';
+                  ]]]
+
+        - type: custom:button-card
+          entity: counter.chore_streak_member_2
+          name: "Streak"
+          icon: mdi:fire
+          show_state: true
+          state_display: "[[[ return entity.state + ' days'; ]]]"
+          styles:
+            card:
+              - background: "rgba(255, 152, 0, 0.08)"
+              - border-radius: "0"
+              - box-shadow: "none"
+              - padding: "6px 16px"
+              - border: "none"
+              - min-height: "auto"
+            grid:
+              - grid-template-areas: '"i n s"'
+              - grid-template-columns: "24px 1fr auto"
+            icon:
+              - color: "#FF9800"
+              - width: "20px"
+            name:
+              - font-size: "0.85em"
+              - color: "#888"
+              - justify-self: "start"
+            state:
+              - font-size: "0.9em"
+              - font-weight: "600"
+              - color: "#FF9800"
+
+        - type: custom:auto-entities
+          filter:
+            include:
+              - entity_id: "input_boolean.chore_*_done"
+                options:
+                  type: custom:button-card
+                  show_icon: true
+                  show_name: true
+                  show_state: false
+                  icon: |
+                    [[[
+                      return entity.state === 'on' ? 'mdi:checkbox-marked-circle' : 'mdi:checkbox-blank-circle-outline';
+                    ]]]
+                  name: |
+                    [[[
+                      const num = entity.entity_id.match(/chore_(\d+)_done/)[1];
+                      return states['input_text.chore_' + num + '_name']?.state || 'Chore ' + num;
+                    ]]]
+                  tap_action:
+                    action: toggle
+                  styles:
+                    card:
+                      - background: "transparent"
+                      - box-shadow: "none"
+                      - border: "none"
+                      - padding: "4px 16px"
+                      - margin: "0"
+                    grid:
+                      - grid-template-areas: '"i n"'
+                      - grid-template-columns: "30px 1fr"
+                    icon:
+                      - width: "22px"
+                      - color: |
+                          [[[
+                            return entity.state === 'on' ? '#4CAF50' : '#CCC';
+                          ]]]
+                    name:
+                      - font-size: "0.95em"
+                      - justify-self: "start"
+                      - text-decoration: |
+                          [[[
+                            return entity.state === 'on' ? 'line-through' : 'none';
+                          ]]]
+                      - color: |
+                          [[[
+                            return entity.state === 'on' ? '#AAA' : '#333';
+                          ]]]
+          card:
+            type: vertical-stack
+          card_mod:
+            style: |
+              ha-card {
+                background: rgba(255, 255, 255, 0.7) !important;
+                border-radius: 0 0 20px 20px !important;
+                box-shadow: none !important;
+                padding-bottom: 8px;
+              }
+      grid_options:
+        columns: 30
+        rows: auto
+      visibility:
+        - condition: numeric_state
+          entity: input_number.chore_active_members
+          above: 1
+
+    # ===================================================================
+    #  MEMBER 3 CARD
+    # ===================================================================
+    - type: vertical-stack
+      cards:
+        - type: custom:button-card
+          entity: sensor.chore_completion_member_3
+          name: "[[[ return states['input_text.chore_member_3_name'].state; ]]]"
+          icon: mdi:account-circle
+          show_state: true
+          state_display: "[[[ return entity.state + '%'; ]]]"
+          styles:
+            card:
+              - background: "rgba(255, 255, 255, 0.9)"
+              - border-radius: "20px 20px 0 0"
+              - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+              - padding: "16px"
+              - border: "none"
+            grid:
+              - grid-template-areas: '"i n s"'
+              - grid-template-columns: "44px 1fr auto"
+            icon:
+              - color: "#66BB6A"
+              - width: "36px"
+            name:
+              - font-size: "1.15em"
+              - font-weight: "700"
+              - color: "#333"
+              - justify-self: "start"
+            state:
+              - font-size: "1.1em"
+              - font-weight: "600"
+              - color: |
+                  [[[
+                    const pct = parseInt(entity.state);
+                    if (pct >= 100) return '#4CAF50';
+                    if (pct >= 50) return '#FF9800';
+                    return '#F44336';
+                  ]]]
+
+        - type: custom:button-card
+          entity: counter.chore_streak_member_3
+          name: "Streak"
+          icon: mdi:fire
+          show_state: true
+          state_display: "[[[ return entity.state + ' days'; ]]]"
+          styles:
+            card:
+              - background: "rgba(255, 152, 0, 0.08)"
+              - border-radius: "0"
+              - box-shadow: "none"
+              - padding: "6px 16px"
+              - border: "none"
+              - min-height: "auto"
+            grid:
+              - grid-template-areas: '"i n s"'
+              - grid-template-columns: "24px 1fr auto"
+            icon:
+              - color: "#FF9800"
+              - width: "20px"
+            name:
+              - font-size: "0.85em"
+              - color: "#888"
+              - justify-self: "start"
+            state:
+              - font-size: "0.9em"
+              - font-weight: "600"
+              - color: "#FF9800"
+
+        - type: custom:auto-entities
+          filter:
+            include:
+              - entity_id: "input_boolean.chore_*_done"
+                options:
+                  type: custom:button-card
+                  show_icon: true
+                  show_name: true
+                  show_state: false
+                  icon: |
+                    [[[
+                      return entity.state === 'on' ? 'mdi:checkbox-marked-circle' : 'mdi:checkbox-blank-circle-outline';
+                    ]]]
+                  name: |
+                    [[[
+                      const num = entity.entity_id.match(/chore_(\d+)_done/)[1];
+                      return states['input_text.chore_' + num + '_name']?.state || 'Chore ' + num;
+                    ]]]
+                  tap_action:
+                    action: toggle
+                  styles:
+                    card:
+                      - background: "transparent"
+                      - box-shadow: "none"
+                      - border: "none"
+                      - padding: "4px 16px"
+                      - margin: "0"
+                    grid:
+                      - grid-template-areas: '"i n"'
+                      - grid-template-columns: "30px 1fr"
+                    icon:
+                      - width: "22px"
+                      - color: |
+                          [[[
+                            return entity.state === 'on' ? '#4CAF50' : '#CCC';
+                          ]]]
+                    name:
+                      - font-size: "0.95em"
+                      - justify-self: "start"
+                      - text-decoration: |
+                          [[[
+                            return entity.state === 'on' ? 'line-through' : 'none';
+                          ]]]
+                      - color: |
+                          [[[
+                            return entity.state === 'on' ? '#AAA' : '#333';
+                          ]]]
+          card:
+            type: vertical-stack
+          card_mod:
+            style: |
+              ha-card {
+                background: rgba(255, 255, 255, 0.7) !important;
+                border-radius: 0 0 20px 20px !important;
+                box-shadow: none !important;
+                padding-bottom: 8px;
+              }
+      grid_options:
+        columns: 30
+        rows: auto
+      visibility:
+        - condition: numeric_state
+          entity: input_number.chore_active_members
+          above: 2
+
+    # ===================================================================
+    #  MEMBER 4 CARD
+    # ===================================================================
+    - type: vertical-stack
+      cards:
+        - type: custom:button-card
+          entity: sensor.chore_completion_member_4
+          name: "[[[ return states['input_text.chore_member_4_name'].state; ]]]"
+          icon: mdi:account-circle
+          show_state: true
+          state_display: "[[[ return entity.state + '%'; ]]]"
+          styles:
+            card:
+              - background: "rgba(255, 255, 255, 0.9)"
+              - border-radius: "20px 20px 0 0"
+              - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+              - padding: "16px"
+              - border: "none"
+            grid:
+              - grid-template-areas: '"i n s"'
+              - grid-template-columns: "44px 1fr auto"
+            icon:
+              - color: "#FFA726"
+              - width: "36px"
+            name:
+              - font-size: "1.15em"
+              - font-weight: "700"
+              - color: "#333"
+              - justify-self: "start"
+            state:
+              - font-size: "1.1em"
+              - font-weight: "600"
+              - color: |
+                  [[[
+                    const pct = parseInt(entity.state);
+                    if (pct >= 100) return '#4CAF50';
+                    if (pct >= 50) return '#FF9800';
+                    return '#F44336';
+                  ]]]
+
+        - type: custom:button-card
+          entity: counter.chore_streak_member_4
+          name: "Streak"
+          icon: mdi:fire
+          show_state: true
+          state_display: "[[[ return entity.state + ' days'; ]]]"
+          styles:
+            card:
+              - background: "rgba(255, 152, 0, 0.08)"
+              - border-radius: "0"
+              - box-shadow: "none"
+              - padding: "6px 16px"
+              - border: "none"
+              - min-height: "auto"
+            grid:
+              - grid-template-areas: '"i n s"'
+              - grid-template-columns: "24px 1fr auto"
+            icon:
+              - color: "#FF9800"
+              - width: "20px"
+            name:
+              - font-size: "0.85em"
+              - color: "#888"
+              - justify-self: "start"
+            state:
+              - font-size: "0.9em"
+              - font-weight: "600"
+              - color: "#FF9800"
+
+        - type: custom:auto-entities
+          filter:
+            include:
+              - entity_id: "input_boolean.chore_*_done"
+                options:
+                  type: custom:button-card
+                  show_icon: true
+                  show_name: true
+                  show_state: false
+                  icon: |
+                    [[[
+                      return entity.state === 'on' ? 'mdi:checkbox-marked-circle' : 'mdi:checkbox-blank-circle-outline';
+                    ]]]
+                  name: |
+                    [[[
+                      const num = entity.entity_id.match(/chore_(\d+)_done/)[1];
+                      return states['input_text.chore_' + num + '_name']?.state || 'Chore ' + num;
+                    ]]]
+                  tap_action:
+                    action: toggle
+                  styles:
+                    card:
+                      - background: "transparent"
+                      - box-shadow: "none"
+                      - border: "none"
+                      - padding: "4px 16px"
+                      - margin: "0"
+                    grid:
+                      - grid-template-areas: '"i n"'
+                      - grid-template-columns: "30px 1fr"
+                    icon:
+                      - width: "22px"
+                      - color: |
+                          [[[
+                            return entity.state === 'on' ? '#4CAF50' : '#CCC';
+                          ]]]
+                    name:
+                      - font-size: "0.95em"
+                      - justify-self: "start"
+                      - text-decoration: |
+                          [[[
+                            return entity.state === 'on' ? 'line-through' : 'none';
+                          ]]]
+                      - color: |
+                          [[[
+                            return entity.state === 'on' ? '#AAA' : '#333';
+                          ]]]
+          card:
+            type: vertical-stack
+          card_mod:
+            style: |
+              ha-card {
+                background: rgba(255, 255, 255, 0.7) !important;
+                border-radius: 0 0 20px 20px !important;
+                box-shadow: none !important;
+                padding-bottom: 8px;
+              }
+      grid_options:
+        columns: 30
+        rows: auto
+      visibility:
+        - condition: numeric_state
+          entity: input_number.chore_active_members
+          above: 3
+
+  column_span: 10
+  visibility:
+    - condition: state
+      entity: input_boolean.show_chores_section
+      state: "on"
+
+# --- LEADERBOARD ---
+- type: grid
+  cards:
+    - type: vertical-stack
+      cards:
+        - type: custom:button-card
+          name: Leaderboard
+          icon: mdi:trophy
+          show_icon: true
+          show_name: true
+          styles:
+            card:
+              - background: "rgba(255, 255, 255, 0.85)"
+              - border-radius: "20px 20px 0 0"
+              - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+              - padding: "16px"
+              - border: "none"
+            icon:
+              - color: "#FFD600"
+              - width: "32px"
+            name:
+              - font-size: "1.2em"
+              - font-weight: "700"
+              - color: "#333"
+
+        # Leaderboard entries using markdown for dynamic sorting
+        - type: markdown
+          content: |
+            {% set members = [] %}
+            {% set active = states('input_number.chore_active_members') | int(4) %}
+            {% for m in range(1, active + 1) %}
+              {% set name = states('input_text.chore_member_' ~ m ~ '_name') %}
+              {% set pct = states('sensor.chore_completion_member_' ~ m) | int(0) %}
+              {% set streak = states('counter.chore_streak_member_' ~ m) | int(0) %}
+              {% set members = members + [{'name': name, 'pct': pct, 'streak': streak}] %}
+            {% endfor %}
+            {% for m in members | sort(attribute='pct', reverse=true) %}
+            **{{ loop.index }}.** {{ m.name }} &mdash; {{ m.pct }}% today | {{ m.streak }} day streak
+            {% endfor %}
+          card_mod:
+            style: |
+              ha-card {
+                background: rgba(255, 255, 255, 0.7) !important;
+                border-radius: 0 0 20px 20px !important;
+                box-shadow: none !important;
+                border: none !important;
+                padding: 8px 20px 16px;
+                font-size: 1.05em;
+                line-height: 2em;
+              }
+      grid_options:
+        columns: 40
+        rows: auto
+
+    # ===================================================================
+    #  PARENT ADMIN CARD
+    # ===================================================================
+    - type: vertical-stack
+      cards:
+        - type: custom:button-card
+          name: Manage Chores
+          icon: mdi:cog
+          show_icon: true
+          show_name: true
+          tap_action:
+            action: navigate
+            navigation_path: "#chores-admin"
+          styles:
+            card:
+              - background: "#393745"
+              - border-radius: "20px"
+              - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+              - padding: "16px"
+              - border: "none"
+              - cursor: "pointer"
+            icon:
+              - color: "snow"
+              - width: "28px"
+            name:
+              - font-size: "1.1em"
+              - font-weight: "600"
+              - color: "snow"
+      grid_options:
+        columns: 40
+        rows: auto
+
+  column_span: 10
+  visibility:
+    - condition: state
+      entity: input_boolean.show_chores_section
+      state: "on"
+
+# --- CHORES ADMIN POPUP ---
+- type: grid
+  cards:
+    - type: vertical-stack
+      cards:
+        - type: custom:bubble-card
+          card_type: pop-up
+          hash: "#chores-admin"
+          button_type: name
+          name: Chore Administration
+          icon: mdi:clipboard-edit
+          show_icon: true
+          show_name: true
+          styles: |
+            .bubble-button-card-container {
+              background: #393745 !important;
+            }
+
+        # Family member names
+        - type: entities
+          title: Family Members
+          entities:
+            - entity: input_number.chore_active_members
+              name: Active Members
+            - entity: input_text.chore_member_1_name
+              name: Member 1 Name
+            - entity: input_text.chore_member_2_name
+              name: Member 2 Name
+            - entity: input_text.chore_member_3_name
+              name: Member 3 Name
+            - entity: input_text.chore_member_4_name
+              name: Member 4 Name
+            - entity: input_text.chore_member_5_name
+              name: Member 5 Name
+            - entity: input_text.chore_member_6_name
+              name: Member 6 Name
+          card_mod:
+            style: |
+              ha-card {
+                background: rgba(255, 255, 255, 0.9) !important;
+                border-radius: 16px !important;
+              }
+
+        # Chore definitions
+        - type: entities
+          title: Chore Setup
+          entities:
+            - entity: input_number.chore_active_count
+              name: Active Chores
+            - type: divider
+            - entity: input_text.chore_1_name
+            - entity: input_number.chore_1_assigned
+              name: "Assigned to member #"
+            - type: divider
+            - entity: input_text.chore_2_name
+            - entity: input_number.chore_2_assigned
+              name: "Assigned to member #"
+            - type: divider
+            - entity: input_text.chore_3_name
+            - entity: input_number.chore_3_assigned
+              name: "Assigned to member #"
+            - type: divider
+            - entity: input_text.chore_4_name
+            - entity: input_number.chore_4_assigned
+              name: "Assigned to member #"
+            - type: divider
+            - entity: input_text.chore_5_name
+            - entity: input_number.chore_5_assigned
+              name: "Assigned to member #"
+            - type: divider
+            - entity: input_text.chore_6_name
+            - entity: input_number.chore_6_assigned
+              name: "Assigned to member #"
+            - type: divider
+            - entity: input_text.chore_7_name
+            - entity: input_number.chore_7_assigned
+              name: "Assigned to member #"
+            - type: divider
+            - entity: input_text.chore_8_name
+            - entity: input_number.chore_8_assigned
+              name: "Assigned to member #"
+            - type: divider
+            - entity: input_text.chore_9_name
+            - entity: input_number.chore_9_assigned
+              name: "Assigned to member #"
+            - type: divider
+            - entity: input_text.chore_10_name
+            - entity: input_number.chore_10_assigned
+              name: "Assigned to member #"
+          card_mod:
+            style: |
+              ha-card {
+                background: rgba(255, 255, 255, 0.9) !important;
+                border-radius: 16px !important;
+              }
+  cards: []

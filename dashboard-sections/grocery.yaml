@@ -1,0 +1,357 @@
+# ==============================================================================
+#  GROCERY & MEALS DASHBOARD SECTION
+# ==============================================================================
+#  Add these cards to your dashboard.yaml under the sections list.
+#  Requires: packages/grocery_integration.yaml
+#  Requires: card-mod, bubble-card (HACS)
+# ==============================================================================
+
+# --- GROCERY & MEALS SECTION ---
+# Paste this section into dashboard.yaml after the calendar section.
+# It is wrapped in a conditional that respects the show_grocery_section toggle.
+
+- type: grid
+  cards:
+    # --- Section Header ---
+    - type: markdown
+      content: <font color="Black" size="6">Grocery & Meals</font>
+      card_mod:
+        style: |
+          ha-card {
+            background: transparent !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 16px;
+          }
+      grid_options:
+        columns: 120
+        rows: auto
+  column_span: 10
+  visibility:
+    - condition: state
+      entity: input_boolean.show_grocery_section
+      state: "on"
+
+- type: grid
+  cards:
+    # ===================================================================
+    #  GROCY SHOPPING LIST
+    # ===================================================================
+    - type: vertical-stack
+      cards:
+        - type: conditional
+          conditions:
+            - entity: input_boolean.show_grocery_list
+              state: "on"
+          card:
+            type: vertical-stack
+            cards:
+              # Shopping List Header
+              - type: custom:button-card
+                name: Shopping List
+                icon: mdi:cart
+                show_state: true
+                entity: sensor.grocy_shopping_list_count
+                styles:
+                  card:
+                    - background: "rgba(255, 255, 255, 0.85)"
+                    - border-radius: "20px"
+                    - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+                    - padding: "16px"
+                  grid:
+                    - grid-template-areas: '"i n s"'
+                    - grid-template-columns: "40px 1fr auto"
+                  icon:
+                    - color: "#4CAF50"
+                    - width: "32px"
+                  name:
+                    - font-size: "1.2em"
+                    - font-weight: "600"
+                    - color: "#333"
+                    - justify-self: "start"
+                  state:
+                    - font-size: "1.1em"
+                    - color: "#666"
+                card_mod:
+                  style: |
+                    ha-card { border: none !important; }
+
+              # Shopping List Items (from Grocy integration)
+              - type: custom:auto-entities
+                filter:
+                  include:
+                    - entity_id: sensor.grocy_shopping_list
+                      options:
+                        type: custom:button-card
+                        layout: icon_name
+                show_empty: true
+                sort:
+                  method: friendly_name
+                card:
+                  type: entities
+                  card_mod:
+                    style: |
+                      ha-card {
+                        background: rgba(255, 255, 255, 0.7) !important;
+                        border-radius: 16px !important;
+                        box-shadow: none !important;
+                        border: 1px solid rgba(0,0,0,0.05) !important;
+                      }
+
+              # Quick Add Item
+              - type: horizontal-stack
+                cards:
+                  - type: entities
+                    entities:
+                      - entity: input_text.grocy_quick_add_item
+                        name: Add item...
+                    card_mod:
+                      style: |
+                        ha-card {
+                          background: rgba(255, 255, 255, 0.7) !important;
+                          border-radius: 16px !important;
+                          box-shadow: none !important;
+                          border: 1px solid rgba(0,0,0,0.05) !important;
+                        }
+                  - type: custom:button-card
+                    name: Add
+                    icon: mdi:plus
+                    tap_action:
+                      action: call-service
+                      service: script.grocy_quick_add_to_shopping_list
+                    styles:
+                      card:
+                        - background: "#4CAF50"
+                        - border-radius: "16px"
+                        - color: "white"
+                        - height: "100%"
+                      icon:
+                        - color: "white"
+                        - width: "24px"
+                      name:
+                        - font-size: "0.9em"
+                        - color: "white"
+      grid_options:
+        columns: 40
+        rows: auto
+
+    # ===================================================================
+    #  EXPIRING ITEMS ALERT
+    # ===================================================================
+    - type: conditional
+      conditions:
+        - entity: input_boolean.show_grocery_list
+          state: "on"
+      card:
+        type: custom:button-card
+        entity: sensor.grocy_expiring_soon
+        name: Expiring Soon
+        icon: mdi:clock-alert-outline
+        show_state: true
+        show_name: true
+        state_display: |
+          [[[
+            const count = entity.state;
+            if (count == '0') return 'All good!';
+            return count + ' item' + (count == '1' ? '' : 's');
+          ]]]
+        styles:
+          card:
+            - background: |
+                [[[
+                  const count = parseInt(entity.state);
+                  if (count > 0) return 'rgba(255, 152, 0, 0.15)';
+                  return 'rgba(76, 175, 80, 0.1)';
+                ]]]
+            - border-radius: "20px"
+            - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+            - padding: "16px"
+            - border: "none"
+          icon:
+            - color: |
+                [[[
+                  const count = parseInt(entity.state);
+                  if (count > 0) return '#FF9800';
+                  return '#4CAF50';
+                ]]]
+            - width: "36px"
+          name:
+            - font-size: "1em"
+            - font-weight: "600"
+            - color: "#333"
+          state:
+            - font-size: "0.95em"
+            - color: "#666"
+      grid_options:
+        columns: 40
+        rows: auto
+
+    # ===================================================================
+    #  MEAL PLAN - TODAY & TOMORROW
+    # ===================================================================
+    - type: vertical-stack
+      cards:
+        - type: conditional
+          conditions:
+            - entity: input_boolean.show_meal_plan
+              state: "on"
+          card:
+            type: vertical-stack
+            cards:
+              - type: custom:button-card
+                name: "Today's Meals"
+                icon: mdi:silverware-fork-knife
+                entity: sensor.grocy_meal_plan_today
+                show_state: true
+                styles:
+                  card:
+                    - background: "rgba(255, 255, 255, 0.85)"
+                    - border-radius: "20px"
+                    - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+                    - padding: "20px"
+                    - border: "none"
+                  grid:
+                    - grid-template-areas: '"i n" "i s"'
+                    - grid-template-columns: "50px 1fr"
+                  icon:
+                    - color: "#FF7043"
+                    - width: "40px"
+                  name:
+                    - font-size: "1.1em"
+                    - font-weight: "600"
+                    - color: "#333"
+                    - justify-self: "start"
+                  state:
+                    - font-size: "1em"
+                    - color: "#555"
+                    - justify-self: "start"
+                    - white-space: "normal"
+                    - text-align: "left"
+      grid_options:
+        columns: 40
+        rows: auto
+
+    # ===================================================================
+    #  ANYLIST SHARED LIST
+    # ===================================================================
+    - type: vertical-stack
+      cards:
+        - type: conditional
+          conditions:
+            - entity: input_boolean.show_anylist
+              state: "on"
+          card:
+            type: vertical-stack
+            cards:
+              - type: custom:button-card
+                name: AnyList
+                icon: mdi:format-list-checks
+                show_name: true
+                styles:
+                  card:
+                    - background: "rgba(255, 255, 255, 0.85)"
+                    - border-radius: "20px"
+                    - box-shadow: "0 2px 8px rgba(0,0,0,0.06)"
+                    - padding: "16px"
+                    - border: "none"
+                  icon:
+                    - color: "#2196F3"
+                    - width: "32px"
+                  name:
+                    - font-size: "1.2em"
+                    - font-weight: "600"
+                    - color: "#333"
+
+              # AnyList items (requires configured sensor)
+              # Placeholder markdown until AnyList sensor is configured
+              - type: markdown
+                content: >
+                  Configure the AnyList sensor in `packages/grocery_integration.yaml`
+                  to display your shared grocery list here.
+                card_mod:
+                  style: |
+                    ha-card {
+                      background: rgba(255, 255, 255, 0.5) !important;
+                      border-radius: 16px !important;
+                      box-shadow: none !important;
+                      border: 1px dashed rgba(0,0,0,0.15) !important;
+                      font-size: 0.9em;
+                      color: #888;
+                    }
+
+              # Quick Add to AnyList
+              - type: horizontal-stack
+                cards:
+                  - type: entities
+                    entities:
+                      - entity: input_text.anylist_quick_add_item
+                        name: Add item...
+                    card_mod:
+                      style: |
+                        ha-card {
+                          background: rgba(255, 255, 255, 0.7) !important;
+                          border-radius: 16px !important;
+                          box-shadow: none !important;
+                          border: 1px solid rgba(0,0,0,0.05) !important;
+                        }
+                  - type: custom:button-card
+                    name: Add
+                    icon: mdi:plus
+                    tap_action:
+                      action: call-service
+                      service: script.anylist_quick_add_item
+                    styles:
+                      card:
+                        - background: "#2196F3"
+                        - border-radius: "16px"
+                        - color: "white"
+                        - height: "100%"
+                      icon:
+                        - color: "white"
+                        - width: "24px"
+                      name:
+                        - font-size: "0.9em"
+                        - color: "white"
+      grid_options:
+        columns: 40
+        rows: auto
+
+  column_span: 10
+  visibility:
+    - condition: state
+      entity: input_boolean.show_grocery_section
+      state: "on"
+
+# --- SECTION TOGGLES (settings popup) ---
+- type: grid
+  cards:
+    - type: vertical-stack
+      cards:
+        - type: custom:bubble-card
+          card_type: pop-up
+          hash: "#grocery-settings"
+          button_type: name
+          name: Grocery & Meal Settings
+          icon: mdi:cog
+          show_icon: true
+          show_name: true
+          styles: |
+            .bubble-button-card-container {
+              background: #4CAF50 !important;
+            }
+        - type: entities
+          entities:
+            - entity: input_boolean.show_grocery_list
+              name: Show Shopping List
+            - entity: input_boolean.show_meal_plan
+              name: Show Meal Plan
+            - entity: input_boolean.show_anylist
+              name: Show AnyList
+          title: Grocery Panel Settings
+          card_mod:
+            style: |
+              ha-card {
+                background: rgba(255, 255, 255, 0.9) !important;
+                border-radius: 16px !important;
+              }
+  cards: []

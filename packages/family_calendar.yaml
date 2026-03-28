@@ -3,7 +3,7 @@
 # ==============================================================================
 #  INSTRUCTIONS:
 #  1. Place this file in your /config/packages/ folder.
-#  2. Ensure your configuration.yaml has: 
+#  2. Ensure your configuration.yaml has:
 #     homeassistant:
 #       packages: !include_dir_named packages
 #  3. RESTART Home Assistant.
@@ -34,12 +34,23 @@ input_text:
     name: Holidays Filter
     initial: ".*"
 
-  # Event Form Data
+  # Event Form Data (Add Event)
   calendar_event_title:
     name: Event Title
     icon: mdi:format-title
   calendar_event_description:
     name: Event Description
+    icon: mdi:text
+
+  # Event Form Data (Edit Event)
+  edit_event_uid:
+    name: Edit Event UID
+    icon: mdi:identifier
+  edit_event_title:
+    name: Edit Event Title
+    icon: mdi:format-title
+  edit_event_description:
+    name: Edit Event Description
     icon: mdi:text
 
 input_select:
@@ -53,7 +64,18 @@ input_select:
       - calendar4
       - Family
     icon: mdi:calendar-check
-  
+
+  # Edit event calendar selector
+  edit_event_calendar:
+    name: Edit Event Calendar
+    options:
+      - calendar1
+      - calendar2
+      - calendar3
+      - calendar4
+      - Family
+    icon: mdi:calendar-edit
+
   # The View selector (Week, Month, etc)
   calendar_view:
     name: Calendar View
@@ -65,8 +87,18 @@ input_select:
       - Month
     initial: Week
 
+  # Theme mode selector (light, dark, auto)
+  calendar_theme_mode:
+    name: Calendar Theme Mode
+    options:
+      - light
+      - dark
+      - auto
+    initial: auto
+    icon: mdi:theme-light-dark
+
 input_datetime:
-  # Event start/end times
+  # Event start/end times (Add Event)
   calendar_event_start:
     has_date: true
     has_time: true
@@ -80,6 +112,20 @@ input_datetime:
     has_date: true
     has_time: false
 
+  # Event start/end times (Edit Event)
+  edit_event_start:
+    has_date: true
+    has_time: true
+  edit_event_end:
+    has_date: true
+    has_time: true
+  edit_event_day_start:
+    has_date: true
+    has_time: false
+  edit_event_day_end:
+    has_date: true
+    has_time: false
+
 input_boolean:
   # UI Toggles
   calendar_all_day_event:
@@ -87,6 +133,16 @@ input_boolean:
     icon: mdi:calendar-clock
   family_calendar_show:
     name: Show Family Calendar
+
+  # Edit event all-day toggle
+  edit_event_all_day:
+    name: Edit All Day Event
+    icon: mdi:calendar-clock
+
+  # Dark mode manual override
+  calendar_dark_mode_override:
+    name: Dark Mode Override
+    icon: mdi:weather-night
 
 # 2. SCRIPTS (The Logic)
 script:
@@ -156,22 +212,16 @@ script:
 
   # --- Add Event Logic ---
   add_google_calendar_event:
-    alias: Process Add Calendar Event
+    alias: Add Calendar Event
     sequence:
       - variables:
-          # ====================================================================
-          # CONFIGURATION: ENTITY MAPPING
-          # Map the Dropdown Name (Left) to your Entity ID (Right).
-          # ====================================================================
           calendar_map:
-            "calendar1": "calendar.calendar1" #<--- UPDATE THIS ENTITY
-            "calendar2": "calendar.calendar2" #<--- UPDATE THIS ENTITY
-            "calendar3": "calendar.calendar3" #<--- UPDATE THIS ENTITY
-            "calendar4": "calendar.calendar4" #<--- UPDATE THIS ENTITY
-            "Family": "calendar.family" #<--- UPDATE THIS ENTITY
-          
-          # Selects the entity based on the map above
-          target_calendar: "{{ calendar_map.get(states('input_select.calendar_select'), 'calendar.family') }}" #<--- UPDATE THIS ENTITY
+            "calendar1": "calendar.calendar1"
+            "calendar2": "calendar.calendar2"
+            "calendar3": "calendar.calendar3"
+            "calendar4": "calendar.calendar4"
+            "Family": "calendar.family"
+          target_calendar: "{{ calendar_map.get(states('input_select.calendar_select'), 'calendar.family') }}"
 
       - choose:
           # Scenario A: All Day Event
@@ -188,7 +238,7 @@ script:
                   description: "{{ states('input_text.calendar_event_description') }}"
                   start_date: "{{ states('input_datetime.calendar_day_event_start') }}"
                   end_date: "{{ states('input_datetime.calendar_day_event_end') }}"
-          
+
           # Scenario B: Timed Event
           - conditions:
               - condition: state
@@ -217,3 +267,216 @@ script:
           value: ""
       - action: browser_mod.close_popup
         data: {}
+
+  # --- Edit Event Logic ---
+  save_edited_calendar_event:
+    alias: Save Edited Calendar Event
+    sequence:
+      - variables:
+          calendar_map:
+            "calendar1": "calendar.calendar1"
+            "calendar2": "calendar.calendar2"
+            "calendar3": "calendar.calendar3"
+            "calendar4": "calendar.calendar4"
+            "Family": "calendar.family"
+          target_calendar: "{{ calendar_map.get(states('input_select.edit_event_calendar'), 'calendar.family') }}"
+          event_uid: "{{ states('input_text.edit_event_uid') }}"
+
+      - choose:
+          # All Day Event
+          - conditions:
+              - condition: state
+                entity_id: input_boolean.edit_event_all_day
+                state: "on"
+            sequence:
+              - action: calendar.create_event
+                target:
+                  entity_id: "{{ target_calendar }}"
+                data:
+                  summary: "{{ states('input_text.edit_event_title') }}"
+                  description: "{{ states('input_text.edit_event_description') }}"
+                  start_date: "{{ states('input_datetime.edit_event_day_start') }}"
+                  end_date: "{{ states('input_datetime.edit_event_day_end') }}"
+
+          # Timed Event
+          - conditions:
+              - condition: state
+                entity_id: input_boolean.edit_event_all_day
+                state: "off"
+            sequence:
+              - action: calendar.create_event
+                target:
+                  entity_id: "{{ target_calendar }}"
+                data:
+                  summary: "{{ states('input_text.edit_event_title') }}"
+                  description: "{{ states('input_text.edit_event_description') }}"
+                  start_date_time: "{{ states('input_datetime.edit_event_start') }}"
+                  end_date_time: "{{ states('input_datetime.edit_event_end') }}"
+
+      # Cleanup
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.edit_event_title
+        data:
+          value: ""
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.edit_event_description
+        data:
+          value: ""
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.edit_event_uid
+        data:
+          value: ""
+      - action: browser_mod.close_popup
+        data: {}
+
+  # --- Delete Event Logic ---
+  delete_calendar_event:
+    alias: Delete Calendar Event
+    sequence:
+      - variables:
+          calendar_map:
+            "calendar1": "calendar.calendar1"
+            "calendar2": "calendar.calendar2"
+            "calendar3": "calendar.calendar3"
+            "calendar4": "calendar.calendar4"
+            "Family": "calendar.family"
+          target_calendar: "{{ calendar_map.get(states('input_select.edit_event_calendar'), 'calendar.family') }}"
+
+      - action: calendar.delete_event
+        target:
+          entity_id: "{{ target_calendar }}"
+        data:
+          uid: "{{ states('input_text.edit_event_uid') }}"
+
+      # Cleanup
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.edit_event_title
+        data:
+          value: ""
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.edit_event_description
+        data:
+          value: ""
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.edit_event_uid
+        data:
+          value: ""
+      - action: browser_mod.close_popup
+        data: {}
+
+  # --- Theme Switching ---
+  set_calendar_theme:
+    alias: Set Calendar Theme
+    sequence:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: input_select.calendar_theme_mode
+                state: "light"
+            sequence:
+              - action: frontend.set_theme
+                data:
+                  name: Skylight
+          - conditions:
+              - condition: state
+                entity_id: input_select.calendar_theme_mode
+                state: "dark"
+            sequence:
+              - action: frontend.set_theme
+                data:
+                  name: skylight-dark
+          - conditions:
+              - condition: state
+                entity_id: input_select.calendar_theme_mode
+                state: "auto"
+            sequence:
+              - choose:
+                  - conditions:
+                      - condition: state
+                        entity_id: sun.sun
+                        state: "below_horizon"
+                    sequence:
+                      - action: frontend.set_theme
+                        data:
+                          name: skylight-dark
+                default:
+                  - action: frontend.set_theme
+                    data:
+                      name: Skylight
+
+# 3. AUTOMATIONS
+automation:
+  # Auto dark mode based on sun position
+  - id: calendar_auto_dark_mode_sunset
+    alias: Calendar Auto Dark Mode at Sunset
+    trigger:
+      - platform: state
+        entity_id: sun.sun
+        to: "below_horizon"
+    condition:
+      - condition: state
+        entity_id: input_select.calendar_theme_mode
+        state: "auto"
+    action:
+      - action: frontend.set_theme
+        data:
+          name: skylight-dark
+
+  - id: calendar_auto_light_mode_sunrise
+    alias: Calendar Auto Light Mode at Sunrise
+    trigger:
+      - platform: state
+        entity_id: sun.sun
+        to: "above_horizon"
+    condition:
+      - condition: state
+        entity_id: input_select.calendar_theme_mode
+        state: "auto"
+    action:
+      - action: frontend.set_theme
+        data:
+          name: Skylight
+
+  # React to manual theme mode changes
+  - id: calendar_theme_mode_changed
+    alias: Calendar Theme Mode Changed
+    trigger:
+      - platform: state
+        entity_id: input_select.calendar_theme_mode
+    action:
+      - action: script.set_calendar_theme
+
+  # React to dark mode override toggle
+  - id: calendar_dark_mode_override_toggle
+    alias: Calendar Dark Mode Override Toggle
+    trigger:
+      - platform: state
+        entity_id: input_boolean.calendar_dark_mode_override
+    action:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: input_boolean.calendar_dark_mode_override
+                state: "on"
+            sequence:
+              - action: input_select.select_option
+                target:
+                  entity_id: input_select.calendar_theme_mode
+                data:
+                  option: dark
+          - conditions:
+              - condition: state
+                entity_id: input_boolean.calendar_dark_mode_override
+                state: "off"
+            sequence:
+              - action: input_select.select_option
+                target:
+                  entity_id: input_select.calendar_theme_mode
+                data:
+                  option: auto

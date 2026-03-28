@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HomeHero Dashboard</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #333;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 24px;
+      padding: 3rem;
+      max-width: 600px;
+      width: 90%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+    }
+
+    .logo {
+      font-size: 3rem;
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #2d3748;
+    }
+
+    .subtitle {
+      color: #718096;
+      font-size: 1rem;
+      margin-bottom: 2rem;
+    }
+
+    .status {
+      background: #f7fafc;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .status h2 {
+      font-size: 1rem;
+      color: #4a5568;
+      margin-bottom: 1rem;
+    }
+
+    .status-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .status-item:last-child {
+      border-bottom: none;
+    }
+
+    .status-label {
+      color: #4a5568;
+      font-size: 0.9rem;
+    }
+
+    .status-value {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    .status-ok { color: #38a169; }
+    .status-warn { color: #d69e2e; }
+    .status-err { color: #e53e3e; }
+
+    .info {
+      color: #718096;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+
+    .info a {
+      color: #667eea;
+      text-decoration: none;
+    }
+
+    .info a:hover {
+      text-decoration: underline;
+    }
+
+    #calendars-list {
+      text-align: left;
+      margin-top: 1rem;
+    }
+
+    .calendar-item {
+      padding: 0.4rem 0.6rem;
+      margin: 0.25rem 0;
+      background: #edf2f7;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      color: #4a5568;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">📅</div>
+    <h1>HomeHero Dashboard</h1>
+    <p class="subtitle">Family command center — calendar, chores, weather</p>
+
+    <div class="status">
+      <h2>Add-on Status</h2>
+      <div class="status-item">
+        <span class="status-label">Server</span>
+        <span id="server-status" class="status-value status-ok">Running</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">HA API</span>
+        <span id="ha-status" class="status-value">Checking...</span>
+      </div>
+      <div class="status-item">
+        <span class="status-label">Calendars</span>
+        <span id="cal-count" class="status-value">Checking...</span>
+      </div>
+    </div>
+
+    <div id="calendars-list"></div>
+
+    <p class="info">
+      This add-on installs a Lovelace dashboard in Home Assistant.<br>
+      Open your HA sidebar and look for <strong>Family Calendar</strong>.<br><br>
+      <a href="https://github.com/asachs01/homehero-dashboard">Documentation &rarr;</a>
+    </p>
+  </div>
+
+  <script>
+    async function checkStatus() {
+      const haStatus = document.getElementById('ha-status');
+      const calCount = document.getElementById('cal-count');
+      const calList = document.getElementById('calendars-list');
+
+      try {
+        const res = await fetch('/api/calendars');
+        if (res.ok) {
+          const calendars = await res.json();
+          haStatus.textContent = 'Connected';
+          haStatus.className = 'status-value status-ok';
+          calCount.textContent = calendars.length + ' found';
+          calCount.className = 'status-value status-ok';
+
+          if (calendars.length > 0) {
+            calList.innerHTML = '<h2 style="font-size:0.9rem;color:#4a5568;margin-bottom:0.5rem;">Available Calendars</h2>';
+            calendars.forEach(function(cal) {
+              var div = document.createElement('div');
+              div.className = 'calendar-item';
+              div.textContent = cal.name || cal.entity_id;
+              calList.appendChild(div);
+            });
+          }
+        } else if (res.status === 503) {
+          haStatus.textContent = 'Not connected';
+          haStatus.className = 'status-value status-warn';
+          calCount.textContent = 'N/A';
+          calCount.className = 'status-value status-warn';
+        } else {
+          throw new Error('HTTP ' + res.status);
+        }
+      } catch (err) {
+        haStatus.textContent = 'Error';
+        haStatus.className = 'status-value status-err';
+        calCount.textContent = 'Error';
+        calCount.className = 'status-value status-err';
+      }
+    }
+
+    checkStatus();
+  </script>
+</body>
+</html>

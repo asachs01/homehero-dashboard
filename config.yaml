@@ -1,0 +1,43 @@
+name: "HomeHero Dashboard"
+version: "0.1.0"
+slug: homehero-dashboard
+description: "Family command center — calendar, chores, weather. Skylight replacement."
+url: "https://github.com/asachs01/homehero-dashboard"
+arch:
+  - amd64
+  - armv7
+  - aarch64
+ingress: true
+ingress_port: 8099
+panel_icon: "mdi:calendar-heart"
+panel_title: "HomeHero"
+ports:
+  8099/tcp: null
+startup: application
+boot: auto
+init: false
+homeassistant_api: true
+hassio_api: true
+map:
+  - config:rw
+  - data:rw
+options:
+  google_calendar_entity: "calendar.family"
+  theme: "auto"
+  dark_mode_start: "20:00"
+  dark_mode_end: "07:00"
+  weather_entity: "weather.home"
+  calendar_entities:
+    - "calendar.calendar1"
+    - "calendar.calendar2"
+    - "calendar.calendar3"
+    - "calendar.calendar4"
+    - "calendar.family"
+schema:
+  google_calendar_entity: str
+  theme: list(light|dark|auto)
+  dark_mode_start: str
+  dark_mode_end: str
+  weather_entity: str
+  calendar_entities:
+    - str

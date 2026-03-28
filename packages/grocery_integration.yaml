@@ -1,0 +1,204 @@
+# ==============================================================================
+#  GROCERY & MEAL PLANNING INTEGRATION PACKAGE
+# ==============================================================================
+#  Supports: Grocy (native HA integration) + AnyList (REST-based)
+#
+#  INSTRUCTIONS:
+#  1. Place this file in your /config/packages/ folder.
+#  2. Ensure your configuration.yaml has:
+#     homeassistant:
+#       packages: !include_dir_named packages
+#  3. Install the Grocy HA integration (HACS or built-in) for full support.
+#  4. For AnyList: configure the REST sensor with your AnyList credentials
+#     (see the anylist section below for manual setup notes).
+#  5. RESTART Home Assistant.
+# ==============================================================================
+
+# --- VISIBILITY TOGGLES ---
+input_boolean:
+  show_grocery_list:
+    name: Show Grocery List
+    icon: mdi:cart
+    initial: true
+  show_meal_plan:
+    name: Show Meal Plan
+    icon: mdi:silverware-fork-knife
+    initial: true
+  show_anylist:
+    name: Show AnyList
+    icon: mdi:format-list-checks
+    initial: true
+  show_grocery_section:
+    name: Show Grocery & Meals Section
+    icon: mdi:food-apple
+    initial: true
+
+# --- GROCY QUICK-ADD HELPERS ---
+input_text:
+  grocy_quick_add_item:
+    name: Quick Add Grocery Item
+    icon: mdi:plus-circle
+    max: 255
+  anylist_quick_add_item:
+    name: Quick Add AnyList Item
+    icon: mdi:plus-circle
+    max: 255
+
+# --- SHELL COMMANDS (fallback if Grocy custom component not installed) ---
+# Configure GROCY_API_URL and GROCY_API_KEY in your secrets.yaml
+# Example secrets.yaml entries:
+#   grocy_api_url: "http://your-grocy-instance:9283/api"
+#   grocy_api_key: "your-grocy-api-key-here"
+shell_command:
+  grocy_add_shopping_list_item: >
+    curl -s -X POST
+    "{{ states('input_text.grocy_api_url') | default('!secret grocy_api_url', true) }}/objects/shopping_list"
+    -H "GROCY-API-KEY: !secret grocy_api_key"
+    -H "Content-Type: application/json"
+    -d '{"product_id": null, "note": "{{ states("input_text.grocy_quick_add_item") }}", "amount": 1}'
+
+# --- TEMPLATE SENSORS ---
+template:
+  - sensor:
+      # Grocy Shopping List Count
+      # Requires the Grocy integration to populate sensor.grocy_shopping_list
+      - name: "Grocy Shopping List Count"
+        unique_id: grocy_shopping_list_count
+        icon: mdi:cart
+        state: >
+          {% set items = state_attr('sensor.grocy_shopping_list', 'items') %}
+          {% if items is not none %}
+            {{ items | length }}
+          {% else %}
+            0
+          {% endif %}
+        unit_of_measurement: "items"
+
+      # Products expiring within 3 days
+      # Requires Grocy integration sensor.grocy_expiring_products
+      - name: "Grocy Expiring Soon"
+        unique_id: grocy_expiring_soon
+        icon: mdi:clock-alert
+        state: >
+          {% set products = state_attr('sensor.grocy_expiring_products', 'products') %}
+          {% if products is not none %}
+            {{ products | length }}
+          {% else %}
+            0
+          {% endif %}
+        unit_of_measurement: "items"
+        attributes:
+          items: >
+            {% set products = state_attr('sensor.grocy_expiring_products', 'products') %}
+            {% if products is not none %}
+              {{ products | map(attribute='name') | list }}
+            {% else %}
+              []
+            {% endif %}
+
+      # Today's meal plan from Grocy
+      # Requires Grocy integration sensor.grocy_meal_plan
+      - name: "Grocy Meal Plan Today"
+        unique_id: grocy_meal_plan_today
+        icon: mdi:silverware-fork-knife
+        state: >
+          {% set meals = state_attr('sensor.grocy_meal_plan', 'meals') %}
+          {% set today = now().strftime('%Y-%m-%d') %}
+          {% if meals is not none %}
+            {% set todays_meals = meals | selectattr('day', 'equalto', today) | list %}
+            {% if todays_meals | length > 0 %}
+              {{ todays_meals | map(attribute='recipe') | map(attribute='name') | join(', ') }}
+            {% else %}
+              No meals planned
+            {% endif %}
+          {% else %}
+            No meals planned
+          {% endif %}
+        attributes:
+          meal_count: >
+            {% set meals = state_attr('sensor.grocy_meal_plan', 'meals') %}
+            {% set today = now().strftime('%Y-%m-%d') %}
+            {% if meals is not none %}
+              {{ meals | selectattr('day', 'equalto', today) | list | length }}
+            {% else %}
+              0
+            {% endif %}
+
+# --- ANYLIST REST SENSOR ---
+# AnyList does not have an official HA integration.
+# Option 1: Use the unofficial "anylist" Python package via a command_line sensor.
+# Option 2: Use a REST sensor if you have an AnyList-compatible API proxy.
+#
+# MANUAL CONFIGURATION REQUIRED:
+# Uncomment and configure one of the options below after setting up your
+# AnyList access method. Add credentials to secrets.yaml.
+#
+# Option 1 - Command line sensor (requires anylist pip package on HA):
+# command_line:
+#   - sensor:
+#       name: "AnyList Grocery List"
+#       unique_id: anylist_grocery_list
+#       command: >
+#         python3 -c "
+#         import asyncio, json
+#         from anylist import AnyList
+#         async def get_list():
+#             al = AnyList('!secret anylist_email', '!secret anylist_password')
+#             await al.login()
+#             lists = await al.get_lists()
+#             grocery = next((l for l in lists if 'grocery' in l.name.lower()), None)
+#             if grocery:
+#                 items = [{'name': i.name, 'checked': i.checked} for i in grocery.items]
+#                 print(json.dumps({'count': len(items), 'items': items}))
+#             else:
+#                 print(json.dumps({'count': 0, 'items': []}))
+#         asyncio.run(get_list())
+#         "
+#       value_template: "{{ value_json.count }}"
+#       json_attributes:
+#         - items
+#       scan_interval: 300
+#
+# Option 2 - REST sensor (requires an API proxy):
+# rest:
+#   - resource: "!secret anylist_api_url"
+#     headers:
+#       Authorization: "Bearer !secret anylist_api_token"
+#     sensor:
+#       - name: "AnyList Grocery List"
+#         unique_id: anylist_grocery_list
+#         value_template: "{{ value_json.items | length }}"
+#         json_attributes:
+#           - items
+
+# --- SCRIPTS ---
+script:
+  grocy_quick_add_to_shopping_list:
+    alias: "Grocy: Quick Add to Shopping List"
+    icon: mdi:cart-plus
+    sequence:
+      - condition: template
+        value_template: "{{ states('input_text.grocy_quick_add_item') | length > 0 }}"
+      - action: shell_command.grocy_add_shopping_list_item
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.grocy_quick_add_item
+        data:
+          value: ""
+      - action: homeassistant.update_entity
+        target:
+          entity_id: sensor.grocy_shopping_list
+
+  anylist_quick_add_item:
+    alias: "AnyList: Quick Add Item"
+    icon: mdi:plus-circle
+    sequence:
+      # This is a placeholder - actual implementation depends on
+      # which AnyList access method you configure above.
+      - condition: template
+        value_template: "{{ states('input_text.anylist_quick_add_item') | length > 0 }}"
+      - action: input_text.set_value
+        target:
+          entity_id: input_text.anylist_quick_add_item
+        data:
+          value: ""

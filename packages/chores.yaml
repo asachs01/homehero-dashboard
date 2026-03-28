@@ -1,0 +1,626 @@
+# ==============================================================================
+#  CHORES & ROUTINES PACKAGE
+# ==============================================================================
+#  Family chore tracking using only HA helpers (no external backend).
+#  Supports up to 6 family members and 20 chores.
+#
+#  INSTRUCTIONS:
+#  1. Place this file in your /config/packages/ folder.
+#  2. Ensure your configuration.yaml has:
+#     homeassistant:
+#       packages: !include_dir_named packages
+#  3. RESTART Home Assistant.
+#  4. Configure family member names via the HA UI or automations.
+# ==============================================================================
+
+# --- SECTION VISIBILITY ---
+input_boolean:
+  show_chores_section:
+    name: Show Chores & Routines Section
+    icon: mdi:broom
+    initial: true
+
+# --- FAMILY MEMBER NAMES ---
+input_text:
+  chore_member_1_name:
+    name: "Family Member 1"
+    icon: mdi:account
+    initial: "Member 1"
+    max: 30
+  chore_member_2_name:
+    name: "Family Member 2"
+    icon: mdi:account
+    initial: "Member 2"
+    max: 30
+  chore_member_3_name:
+    name: "Family Member 3"
+    icon: mdi:account
+    initial: "Member 3"
+    max: 30
+  chore_member_4_name:
+    name: "Family Member 4"
+    icon: mdi:account
+    initial: "Member 4"
+    max: 30
+  chore_member_5_name:
+    name: "Family Member 5"
+    icon: mdi:account
+    initial: "Member 5"
+    max: 30
+  chore_member_6_name:
+    name: "Family Member 6"
+    icon: mdi:account
+    initial: "Member 6"
+    max: 30
+
+# --- ACTIVE MEMBER COUNT (controls which member cards show) ---
+input_number:
+  chore_active_members:
+    name: Active Family Members
+    icon: mdi:account-group
+    min: 1
+    max: 6
+    step: 1
+    initial: 4
+    mode: slider
+
+# --- CHORE DEFINITIONS (up to 20) ---
+# Each chore has a name, an assigned member, and a done toggle.
+# Chore names
+input_text:
+  chore_1_name:
+    name: "Chore 1 Name"
+    initial: "Make Bed"
+    max: 50
+  chore_2_name:
+    name: "Chore 2 Name"
+    initial: "Wash Dishes"
+    max: 50
+  chore_3_name:
+    name: "Chore 3 Name"
+    initial: "Take Out Trash"
+    max: 50
+  chore_4_name:
+    name: "Chore 4 Name"
+    initial: "Vacuum Living Room"
+    max: 50
+  chore_5_name:
+    name: "Chore 5 Name"
+    initial: "Feed Pets"
+    max: 50
+  chore_6_name:
+    name: "Chore 6 Name"
+    initial: "Set Table"
+    max: 50
+  chore_7_name:
+    name: "Chore 7 Name"
+    initial: "Clear Table"
+    max: 50
+  chore_8_name:
+    name: "Chore 8 Name"
+    initial: "Fold Laundry"
+    max: 50
+  chore_9_name:
+    name: "Chore 9 Name"
+    initial: "Water Plants"
+    max: 50
+  chore_10_name:
+    name: "Chore 10 Name"
+    initial: "Tidy Room"
+    max: 50
+  chore_11_name:
+    name: "Chore 11 Name"
+    initial: ""
+    max: 50
+  chore_12_name:
+    name: "Chore 12 Name"
+    initial: ""
+    max: 50
+  chore_13_name:
+    name: "Chore 13 Name"
+    initial: ""
+    max: 50
+  chore_14_name:
+    name: "Chore 14 Name"
+    initial: ""
+    max: 50
+  chore_15_name:
+    name: "Chore 15 Name"
+    initial: ""
+    max: 50
+  chore_16_name:
+    name: "Chore 16 Name"
+    initial: ""
+    max: 50
+  chore_17_name:
+    name: "Chore 17 Name"
+    initial: ""
+    max: 50
+  chore_18_name:
+    name: "Chore 18 Name"
+    initial: ""
+    max: 50
+  chore_19_name:
+    name: "Chore 19 Name"
+    initial: ""
+    max: 50
+  chore_20_name:
+    name: "Chore 20 Name"
+    initial: ""
+    max: 50
+
+# --- CHORE ASSIGNED MEMBER (1-6, which family member) ---
+input_number:
+  chore_1_assigned:
+    name: "Chore 1 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 1
+    mode: box
+  chore_2_assigned:
+    name: "Chore 2 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 2
+    mode: box
+  chore_3_assigned:
+    name: "Chore 3 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 1
+    mode: box
+  chore_4_assigned:
+    name: "Chore 4 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 2
+    mode: box
+  chore_5_assigned:
+    name: "Chore 5 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 3
+    mode: box
+  chore_6_assigned:
+    name: "Chore 6 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 3
+    mode: box
+  chore_7_assigned:
+    name: "Chore 7 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 4
+    mode: box
+  chore_8_assigned:
+    name: "Chore 8 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 4
+    mode: box
+  chore_9_assigned:
+    name: "Chore 9 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 1
+    mode: box
+  chore_10_assigned:
+    name: "Chore 10 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 2
+    mode: box
+  chore_11_assigned:
+    name: "Chore 11 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 1
+    mode: box
+  chore_12_assigned:
+    name: "Chore 12 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 2
+    mode: box
+  chore_13_assigned:
+    name: "Chore 13 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 3
+    mode: box
+  chore_14_assigned:
+    name: "Chore 14 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 4
+    mode: box
+  chore_15_assigned:
+    name: "Chore 15 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 1
+    mode: box
+  chore_16_assigned:
+    name: "Chore 16 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 2
+    mode: box
+  chore_17_assigned:
+    name: "Chore 17 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 3
+    mode: box
+  chore_18_assigned:
+    name: "Chore 18 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 4
+    mode: box
+  chore_19_assigned:
+    name: "Chore 19 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 1
+    mode: box
+  chore_20_assigned:
+    name: "Chore 20 Assigned To"
+    min: 1
+    max: 6
+    step: 1
+    initial: 2
+    mode: box
+
+# --- ACTIVE CHORE COUNT ---
+input_number:
+  chore_active_count:
+    name: Active Chores
+    icon: mdi:format-list-numbered
+    min: 0
+    max: 20
+    step: 1
+    initial: 10
+    mode: slider
+
+# --- CHORE COMPLETION TOGGLES (daily reset) ---
+input_boolean:
+  chore_1_done:
+    name: "Chore 1 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_2_done:
+    name: "Chore 2 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_3_done:
+    name: "Chore 3 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_4_done:
+    name: "Chore 4 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_5_done:
+    name: "Chore 5 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_6_done:
+    name: "Chore 6 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_7_done:
+    name: "Chore 7 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_8_done:
+    name: "Chore 8 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_9_done:
+    name: "Chore 9 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_10_done:
+    name: "Chore 10 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_11_done:
+    name: "Chore 11 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_12_done:
+    name: "Chore 12 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_13_done:
+    name: "Chore 13 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_14_done:
+    name: "Chore 14 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_15_done:
+    name: "Chore 15 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_16_done:
+    name: "Chore 16 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_17_done:
+    name: "Chore 17 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_18_done:
+    name: "Chore 18 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_19_done:
+    name: "Chore 19 Done"
+    icon: mdi:checkbox-marked-circle
+  chore_20_done:
+    name: "Chore 20 Done"
+    icon: mdi:checkbox-marked-circle
+
+# --- STREAK COUNTERS (per family member) ---
+counter:
+  chore_streak_member_1:
+    name: "Member 1 Streak"
+    icon: mdi:fire
+    initial: 0
+    step: 1
+  chore_streak_member_2:
+    name: "Member 2 Streak"
+    icon: mdi:fire
+    initial: 0
+    step: 1
+  chore_streak_member_3:
+    name: "Member 3 Streak"
+    icon: mdi:fire
+    initial: 0
+    step: 1
+  chore_streak_member_4:
+    name: "Member 4 Streak"
+    icon: mdi:fire
+    initial: 0
+    step: 1
+  chore_streak_member_5:
+    name: "Member 5 Streak"
+    icon: mdi:fire
+    initial: 0
+    step: 1
+  chore_streak_member_6:
+    name: "Member 6 Streak"
+    icon: mdi:fire
+    initial: 0
+    step: 1
+
+# --- TEMPLATE SENSORS ---
+template:
+  - sensor:
+      # Per-member completion percentage
+      - name: "Chore Completion Member 1"
+        unique_id: chore_completion_member_1
+        icon: mdi:percent
+        state: >
+          {% set active = states('input_number.chore_active_count') | int(0) %}
+          {% set ns = namespace(total=0, done=0) %}
+          {% for i in range(1, active + 1) %}
+            {% if states('input_number.chore_' ~ i ~ '_assigned') | int(0) == 1 %}
+              {% set ns.total = ns.total + 1 %}
+              {% if is_state('input_boolean.chore_' ~ i ~ '_done', 'on') %}
+                {% set ns.done = ns.done + 1 %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          {% if ns.total > 0 %}
+            {{ ((ns.done / ns.total) * 100) | round(0) }}
+          {% else %}
+            0
+          {% endif %}
+        unit_of_measurement: "%"
+
+      - name: "Chore Completion Member 2"
+        unique_id: chore_completion_member_2
+        icon: mdi:percent
+        state: >
+          {% set active = states('input_number.chore_active_count') | int(0) %}
+          {% set ns = namespace(total=0, done=0) %}
+          {% for i in range(1, active + 1) %}
+            {% if states('input_number.chore_' ~ i ~ '_assigned') | int(0) == 2 %}
+              {% set ns.total = ns.total + 1 %}
+              {% if is_state('input_boolean.chore_' ~ i ~ '_done', 'on') %}
+                {% set ns.done = ns.done + 1 %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          {% if ns.total > 0 %}
+            {{ ((ns.done / ns.total) * 100) | round(0) }}
+          {% else %}
+            0
+          {% endif %}
+        unit_of_measurement: "%"
+
+      - name: "Chore Completion Member 3"
+        unique_id: chore_completion_member_3
+        icon: mdi:percent
+        state: >
+          {% set active = states('input_number.chore_active_count') | int(0) %}
+          {% set ns = namespace(total=0, done=0) %}
+          {% for i in range(1, active + 1) %}
+            {% if states('input_number.chore_' ~ i ~ '_assigned') | int(0) == 3 %}
+              {% set ns.total = ns.total + 1 %}
+              {% if is_state('input_boolean.chore_' ~ i ~ '_done', 'on') %}
+                {% set ns.done = ns.done + 1 %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          {% if ns.total > 0 %}
+            {{ ((ns.done / ns.total) * 100) | round(0) }}
+          {% else %}
+            0
+          {% endif %}
+        unit_of_measurement: "%"
+
+      - name: "Chore Completion Member 4"
+        unique_id: chore_completion_member_4
+        icon: mdi:percent
+        state: >
+          {% set active = states('input_number.chore_active_count') | int(0) %}
+          {% set ns = namespace(total=0, done=0) %}
+          {% for i in range(1, active + 1) %}
+            {% if states('input_number.chore_' ~ i ~ '_assigned') | int(0) == 4 %}
+              {% set ns.total = ns.total + 1 %}
+              {% if is_state('input_boolean.chore_' ~ i ~ '_done', 'on') %}
+                {% set ns.done = ns.done + 1 %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          {% if ns.total > 0 %}
+            {{ ((ns.done / ns.total) * 100) | round(0) }}
+          {% else %}
+            0
+          {% endif %}
+        unit_of_measurement: "%"
+
+      - name: "Chore Completion Member 5"
+        unique_id: chore_completion_member_5
+        icon: mdi:percent
+        state: >
+          {% set active = states('input_number.chore_active_count') | int(0) %}
+          {% set ns = namespace(total=0, done=0) %}
+          {% for i in range(1, active + 1) %}
+            {% if states('input_number.chore_' ~ i ~ '_assigned') | int(0) == 5 %}
+              {% set ns.total = ns.total + 1 %}
+              {% if is_state('input_boolean.chore_' ~ i ~ '_done', 'on') %}
+                {% set ns.done = ns.done + 1 %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          {% if ns.total > 0 %}
+            {{ ((ns.done / ns.total) * 100) | round(0) }}
+          {% else %}
+            0
+          {% endif %}
+        unit_of_measurement: "%"
+
+      - name: "Chore Completion Member 6"
+        unique_id: chore_completion_member_6
+        icon: mdi:percent
+        state: >
+          {% set active = states('input_number.chore_active_count') | int(0) %}
+          {% set ns = namespace(total=0, done=0) %}
+          {% for i in range(1, active + 1) %}
+            {% if states('input_number.chore_' ~ i ~ '_assigned') | int(0) == 6 %}
+              {% set ns.total = ns.total + 1 %}
+              {% if is_state('input_boolean.chore_' ~ i ~ '_done', 'on') %}
+                {% set ns.done = ns.done + 1 %}
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          {% if ns.total > 0 %}
+            {{ ((ns.done / ns.total) * 100) | round(0) }}
+          {% else %}
+            0
+          {% endif %}
+        unit_of_measurement: "%"
+
+      # Overall daily completion
+      - name: "Chore Daily Completion"
+        unique_id: chore_daily_completion
+        icon: mdi:chart-arc
+        state: >
+          {% set active = states('input_number.chore_active_count') | int(0) %}
+          {% if active == 0 %}
+            0
+          {% else %}
+            {% set ns = namespace(done=0) %}
+            {% for i in range(1, active + 1) %}
+              {% if is_state('input_boolean.chore_' ~ i ~ '_done', 'on') %}
+                {% set ns.done = ns.done + 1 %}
+              {% endif %}
+            {% endfor %}
+            {{ ((ns.done / active) * 100) | round(0) }}
+          {% endif %}
+        unit_of_measurement: "%"
+
+# --- AUTOMATIONS ---
+automation:
+  # Reset all chores at midnight
+  - id: chores_daily_reset
+    alias: "Chores: Daily Reset"
+    trigger:
+      - platform: time
+        at: "00:00:00"
+    action:
+      # Check each member's completion before reset to update streaks
+      - action: script.chores_update_streaks
+      # Reset all chore toggles
+      - action: input_boolean.turn_off
+        target:
+          entity_id:
+            - input_boolean.chore_1_done
+            - input_boolean.chore_2_done
+            - input_boolean.chore_3_done
+            - input_boolean.chore_4_done
+            - input_boolean.chore_5_done
+            - input_boolean.chore_6_done
+            - input_boolean.chore_7_done
+            - input_boolean.chore_8_done
+            - input_boolean.chore_9_done
+            - input_boolean.chore_10_done
+            - input_boolean.chore_11_done
+            - input_boolean.chore_12_done
+            - input_boolean.chore_13_done
+            - input_boolean.chore_14_done
+            - input_boolean.chore_15_done
+            - input_boolean.chore_16_done
+            - input_boolean.chore_17_done
+            - input_boolean.chore_18_done
+            - input_boolean.chore_19_done
+            - input_boolean.chore_20_done
+
+# --- SCRIPTS ---
+script:
+  chores_update_streaks:
+    alias: "Chores: Update Streaks"
+    sequence:
+      # For each active member, check if all their chores are done.
+      # If yes, increment streak. If no, reset streak.
+      - repeat:
+          count: 6
+          sequence:
+            - variables:
+                member_num: "{{ repeat.index }}"
+                active_members: "{{ states('input_number.chore_active_members') | int(4) }}"
+                active_chores: "{{ states('input_number.chore_active_count') | int(10) }}"
+            - condition: template
+              value_template: "{{ member_num | int <= active_members }}"
+            - choose:
+                # All chores done for this member
+                - conditions:
+                    - condition: template
+                      value_template: >
+                        {% set ns = namespace(total=0, done=0) %}
+                        {% for i in range(1, active_chores + 1) %}
+                          {% if states('input_number.chore_' ~ i ~ '_assigned') | int(0) == member_num | int %}
+                            {% set ns.total = ns.total + 1 %}
+                            {% if is_state('input_boolean.chore_' ~ i ~ '_done', 'on') %}
+                              {% set ns.done = ns.done + 1 %}
+                            {% endif %}
+                          {% endif %}
+                        {% endfor %}
+                        {{ ns.total > 0 and ns.done == ns.total }}
+                  sequence:
+                    - action: counter.increment
+                      target:
+                        entity_id: "counter.chore_streak_member_{{ member_num }}"
+              # Not all done - reset streak
+              default:
+                - action: counter.reset
+                  target:
+                    entity_id: "counter.chore_streak_member_{{ member_num }}"

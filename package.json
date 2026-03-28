@@ -1,0 +1,16 @@
+{
+  "name": "homehero-dashboard",
+  "version": "0.1.0",
+  "description": "Family command center — calendar, chores, weather. Skylight replacement.",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "license": "MIT"
+}
